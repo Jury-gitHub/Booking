@@ -9,10 +9,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 </head>
 <body>
-<div class="bg-slate-100">
+<div class="bg-slate-50">
     <div class="flex items-center justify-center max-w-md mx-auto min-h-screen">
         <form>
-                <div class="mb-5 text-center bg-slate-200 rounded-2xl p-6">
+                <div class="mb-5 text-center bg-blue-200 rounded-2xl p-6">
                     <div class="mx-auto w-32 h-32 mb-2 border rounded-2xl relative bg-gray-100 mb-4 shadow-inset">
                         <img src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="Default Image" id="preview" class="h-32 w-32 object-cover border border-slate-300 rounded-2xl">
                     </div>
@@ -25,7 +25,7 @@
                 </div>
               
                 <div class="flex items-center space-x-2 mb-4">
-                    <input type="text" class="input-field w-full bg-slate-800 p-2 text-gray-100 text-xs text-center rounded-xl" id="userlineId" placeholder="lineId" name="userlineId" >
+                    <input type="text" class="input-field w-full bg-pink-300 p-2 text-white text-xs text-center rounded-xl" id="userlineId" placeholder="lineId" name="userlineId" >
                 </div>
                 <div class="flex items-center space-x-2 mb-4">
                     <input type="text" class="input-field w-full border border-white px-4 py-2 text-md rounded-2xl" id="nameId" placeholder="ชื่อ-สกุล" name="nameId" required>
@@ -36,7 +36,7 @@
                 <div class="flex items-center space-x-2 mb-6">
                     <input type="text" class="input-field w-full border border-white px-4 py-2 text-md rounded-2xl" id="keynumber2Id" placeholder="เพิ่มเติม(ถ้ามี)" name="keynumber2Id" >
                 </div>
-                <button type="button" id="submitBtn" class="bg-slate-800  text-center w-full text-white p-4 rounded-2xl hover:bg-slate-400">บันทึกข้อมูล</button>
+                <button type="button" id="submitBtn" class="bg-pink-600  text-center w-full text-white p-4 rounded-2xl hover:bg-slate-400">บันทึกข้อมูล</button>
         </form>
     </div>
 </div>
@@ -50,7 +50,7 @@ const LIFF_ID = '2006332258-ZkQdQ9oP'; // LIFF ID
 
 // ฟังก์ชันเริ่มต้น LIFF SDK
 window.onload = function () {
-    initializeLiff();
+   // initializeLiff();
 };
 
 // ฟังก์ชันสำหรับเริ่มต้น LIFF SDK
