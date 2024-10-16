@@ -4,22 +4,25 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบนัดหมาย33</title>
+    <title>ทันตกรรม KPJH</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
     <style>
         .selected {
-            background-color: #283448 !important;
+            background-color: #ec4899 !important;
             color: white;
         }
+
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
+
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -32,18 +35,26 @@
             justify-content: center;
             align-items: center;
         }
+
         .loading-spinner {
-            border: 16px solid #aaaaaa;
+            border: 16px solid #fbe4fc;
             border-radius: 50%;
-            border-top: 16px solid #1e293b;
+            border-top: 16px solid #ec4899;
             width: 120px;
             height: 120px;
             animation: spin 2s linear infinite;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
+
         .popup {
             position: fixed;
             top: 0;
@@ -57,6 +68,7 @@
             z-index: 1000;
             display: none;
         }
+
         .popup-content {
             background: white;
             padding: 50px;
@@ -64,6 +76,7 @@
             text-align: left;
             width: 80%;
         }
+
         #loadingOverlay {
             display: none;
             position: absolute;
@@ -71,19 +84,37 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgb(30 41 59 0.8);
+            background-color: rgba(255, 255, 255, 0.8);
             align-items: center;
             justify-content: center;
             z-index: 1000;
         }
-        .loading-container { position: relative; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .blink { animation: blink 1s infinite; }
+
+        .loading-container {
+            position: relative;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
     </style>
 </head>
-<body class="bg-green-50 flex flex-col min-h-screen">
+
+<body class="bg-blue-50 flex flex-col min-h-screen">
     <!-- Header Section -->
-    <div class="bg-gradient-to-br from-green-600 to-green-400 text-white p-10">
+    <div class="bg-gradient-to-br from-green-700 to-green-700 text-white p-10">
         <h1 class="text-xl font-bold">ทันตกรรม KPJH</h1>
         <p class="text-sm">รพ.ค่ายประจักษ์ฯ</p>
     </div>
@@ -94,7 +125,7 @@
     <div class="popup" id="popup">
         <div class="max-w-md popup-content mx-auto" id="popupContent"></div>
     </div>
-    
+
     <div class=" w-full mx-auto rounded py-4 px-4 mb-4">
         <form id="bookingForm" class="space-y-2 pt-2" novalidate>
             <input type="hidden" name="action" value="makeBooking">
@@ -105,28 +136,38 @@
                     <h2 class="text-xl">เลือกบริการ</h2>
                 </div>
                 <div class="flex justify-between">
-                    <button type="button" onclick="selectOption(1)" class="w-full h-48 mx-2 bg-blue-100 text-black py-3 rounded-2xl">คลินิก(นอกเวลา) <p class="text-black"> วันปกติ </p></button>
-                    <button type="button" onclick="selectOption(2)" class="w-full h-48 mx-2 bg-pink-200 text-black py-3 rounded-2xl">คลินิก(นอกเวลา) <p class="text-black"> เสาร์-อาทิตย์ </p></button>
+                    <button type="button" onclick="selectOption(1)"
+                        class="w-full h-48 mx-2 bg-blue-200 text-black py-3 rounded-2xl">คลินิก(นอกเวลา) <p
+                            class="text-black"> วันปกติ </p></button>
+                    <button type="button" onclick="selectOption(2)"
+                        class="w-full h-48 mx-2 bg-pink-300 text-black py-3 rounded-2xl">คลินิก(นอกเวลา) <p
+                            class="text-black"> เสาร์-อาทิตย์ </p></button>
                 </div>
             </div>
 
             <!-- Step 1: Booking Form -->
             <div id="step1" class="max-w-sm mx-auto" style="display:none;">
                 <div class="flex mb-4">
-                    <span class="bg-white flex items-center border rounded-2xl p-2 w-24">
-                        <img src="https://img.icons8.com/?size=100&id=22128&format=png&color=000000" class="w-6 h-6 mr-1">
+                    <span class="bg-white flex items-center border rounded-2xl mr-2 p-2 w-24">
+                        <img src="https://img.icons8.com/?size=100&id=22128&format=png&color=000000"
+                            class="w-6 h-6 mr-1">
                         <span class="text-black"> บริการ </span>
                     </span>
-                    <select id="service" name="service" class="rounded-2xl bg-white border text-gray-900 block flex-1 min-w-0 w-full" placeholder="ตัวเลือกบริการ"></select>
+                    <select id="service" name="service"
+                        class="rounded-2xl bg-white border text-gray-900 px-2 block flex-1 min-w-0 w-full"
+                        placeholder="ตัวเลือกบริการ"></select>
                 </div>
                 <div class="flex mb-4">
-                    <span class="bg-white flex items-center border rounded-2xl p-2 w-24">
-                        <img src="https://img.icons8.com/?size=100&id=Ynh2i0jcHfB4&format=png&color=000000" class="w-6 h-6 mr-1">
+                    <span class="bg-white flex items-center border rounded-2xl mr-2 p-2 w-24">
+                        <img src="https://img.icons8.com/?size=100&id=Ynh2i0jcHfB4&format=png&color=000000"
+                            class="w-6 h-6 mr-1">
                         <span class="text-black"> สถานที่ </span>
                     </span>
-                    <select id="locationservice" name="locationservice" class="rounded-2xl bg-white border text-gray-900 block flex-1 min-w-0 w-full" placeholder="ตัวเลือกสถานที่"></select>
+                    <select id="locationservice" name="locationservice"
+                        class="rounded-2xl bg-white border px-2 text-gray-900 block flex-1 min-w-0 w-full"
+                        placeholder="ตัวเลือกสถานที่"></select>
                 </div>
-                <div class="bg-blue-50 px-4 py-4 my-4 rounded-2xl">
+                <div class="bg-blue-200 px-4 py-4 my-4 rounded-2xl">
                     <input type="hidden" id="displayName" name="displayName">
                     <div class="loading-container">
                         <div id="loadingOverlay">
@@ -136,19 +177,25 @@
                         <div class="flex justify-center items-center">
                             <div class="max-w-md">
                                 <div class="flex mb-6">
-                                    <span class="text-center bg-pink-300 rounded-2xl mr-2 p-2 w-32"><span class="text-white text-sm">ชื่อ-สกุล</span></span>
+                                    <span class="text-center bg-pink-500 rounded-2xl mr-2 p-2 w-32"><span
+                                            class="text-white text-sm">ชื่อ-สกุล</span></span>
                                     <input type="text" id="name" name="name" class="w-full p-2 shadow-sm rounded-2xl">
                                 </div>
                                 <div class="flex  mb-6">
-                                    <span class="text-center bg-pink-300 rounded-2xl mr-2 p-2 w-32"><span class="text-white text-sm">ชื่อเล่น</span></span>
-                                    <input type="text" id="nickname" name="nickname" class="w-full p-2 shadow-sm rounded-2xl">
+                                    <span class="text-center bg-pink-500 rounded-2xl mr-2 p-2 w-32"><span
+                                            class="text-white text-sm">ชื่อเล่น</span></span>
+                                    <input type="text" id="nickname" name="nickname"
+                                        class="w-full p-2 shadow-sm rounded-2xl">
                                 </div>
                                 <div class="flex  mb-6">
-                                    <span class="text-center bg-pink-300 rounded-2xl mr-2 p-2 w-32"><span class="text-white text-sm">เบอร์ติดต่อ</span></span>
-                                    <input type="tel" id="phonenumber" name="phonenumber" class="w-full p-2 shadow-sm rounded-2xl">
+                                    <span class="text-center bg-pink-500 rounded-2xl mr-2 p-2 w-32"><span
+                                            class="text-white text-sm">เบอร์ติดต่อ</span></span>
+                                    <input type="tel" id="phonenumber" name="phonenumber"
+                                        class="w-full p-2 shadow-sm rounded-2xl">
                                 </div>
                                 <div class="flex">
-                                    <span class="text-center bg-pink-300 rounded-2xl mr-2 p-2 w-32"><span class="text-white text-sm">หมายเหตุ</span></span>
+                                    <span class="text-center bg-pink-500 rounded-2xl mr-2 p-2 w-32"><span
+                                            class="text-white text-sm">หมายเหตุ</span></span>
                                     <input type="text" id="note" name="note" class="w-full p-2 shadow-sm rounded-2xl">
                                 </div>
                                 <input type="hidden" id="userlineid" name="userlineid">
@@ -157,7 +204,8 @@
                     </div>
                 </div>
                 <div id="buttons" class="">
-                    <button type="button" onclick="nextStep()" class="w-full bg-pink-300 text-white py-3 mt-4 rounded-2xl">ถัดไป</button>
+                    <button type="button" onclick="nextStep()"
+                        class="w-full bg-pink-500 text-white py-3 mt-4 rounded-2xl">ถัดไป</button>
                 </div>
             </div>
 
@@ -165,7 +213,8 @@
             <div id="step2" class="grid gap-4 max-w-sm mx-auto" style="display:none;">
                 <div class="text-center font-semibold mb-6">
                     <div class="flex justify-center space-x-2">
-                        <select id="monthSelect" aria-label="Month" class="text-center bg-white text-black w-1/2 border-2 border-pink-600 rounded-2xl px-2 py-4">
+                        <select id="monthSelect" aria-label="Month"
+                            class="text-center bg-white text-black w-1/2 border border-blue-800 rounded-2xl px-2 py-4">
                             <option value="0">มกราคม</option>
                             <option value="1">กุมภาพันธ์</option>
                             <option value="2">มีนาคม</option>
@@ -179,22 +228,26 @@
                             <option value="10">พฤศจิกายน</option>
                             <option value="11">ธันวาคม</option>
                         </select>
-                        <select id="yearSelect" aria-label="Year" class="text-center bg-white text-black w-1/2 border-2 border-pink-600 rounded-2xl px-2 py-4"></select>
+                        <select id="yearSelect" aria-label="Year"
+                            class="text-center bg-white text-black w-1/2 border border-blue-800 rounded-2xl px-2 py-4"></select>
                     </div>
                 </div>
                 <div class="overflow-x-auto mb-4 no-scrollbar">
                     <div id="calendarDays" class="flex space-x-2"></div>
                 </div>
                 <div id="availability" class="max-w-sm mx-auto space-y-2"></div>
-              
+
                 <div class="hidden">
                     <label for="time" class="block text-sm">Time:</label>
-                    <input type="time" id="time" name="time" required readonly class="w-full px-3 py-3 border border-pink-600 rounded-2xl">
+                    <input type="time" id="time" name="time" required readonly
+                        class="w-full px-3 py-3 border border-blue-900 rounded-2xl">
                 </div>
                 <div class="hidden text-center">
-                    <input type="submit" value="Submit" class="px-6 py-4 bg-pink-600 text-black font-semibold rounded-2xl">
+                    <input type="submit" value="Submit"
+                        class="px-6 py-4 bg-pink-500 text-black font-semibold rounded-2xl">
                 </div>
-                <button type="button" onclick="prevStep()" class="w-32 p-2 mt-5 bg-white text-pink-600 py-3 rounded-2xl">กลับหน้าหลัก</button>
+                <button type="button" onclick="prevStep()"
+                    class="w-32 p-2 mt-5 bg-white text-blue-800 py-3 rounded-2xl">กลับหน้าหลัก</button>
             </div>
         </form>
     </div>
@@ -203,7 +256,7 @@
         let WEB_APP_URL = '';
         const WEB_APP_URL_1 = 'https://script.google.com/macros/s/AKfycbxAA1PZQ1k5See1H_z8CFRfuvWxlB_mYrX6kC80arB5gLiqWKFuzsA6F6K7ihxLS5P-/exec';
         const WEB_APP_URL_2 = 'https://script.google.com/macros/s/AKfycbwC5lxlx8cxtXm5N0ZzldYJXdvEWYVCnXznI4lOP3nVUeIBDJCRCg0aJDH_CFjKIbP5Ow/exec';
-        
+
         const WEB_APP_MEMBER_URL = 'https://script.google.com/macros/s/AKfycbw9CV9X8Uj84JXhGUJ8JEMdlIXp2vvwHhWCe_sBtYtbPzivdsRzj7E4uSuERcqmBFON/exec';
         const LIFF_ID = '2006029649-ANdgDbZ8';
 
@@ -217,10 +270,10 @@
             document.getElementById('step0').style.display = 'none';
             document.getElementById('step1').style.display = 'block';
             showLoading(true);
-              // Fetch the data and initialize LIFF simultaneously
+            // Fetch the data and initialize LIFF simultaneously
             await Promise.all([
                 fetchDropdownData(),
-                // initializeLiff() // LIFF initialization (currently commented out)
+                initializeLiff() // LIFF initialization (currently commented out)
             ]);
 
             // Fetch availability data for the current date
@@ -231,8 +284,8 @@
             yearSelect.value = currentDate.getFullYear();
 
             await updateCalendar(currentDate);
-            
-             showLoading(false);
+
+            showLoading(false);
         }
 
         // Function to load calendar and dropdown data (only when you want to)
@@ -388,7 +441,7 @@
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month, day);
                 const dayElement = document.createElement('div');
-                dayElement.classList.add('bg-slate-800', 'px-6', 'py-3', 'mx-2', 'bg-white', 'border', 'border-slate-800', 'text-center', 'rounded-2xl', 'cursor-pointer');
+                dayElement.classList.add('bg-pink-500', 'px-6', 'py-3', 'mx-2', 'bg-white', 'border', 'border-blue-800', 'text-center', 'rounded-2xl', 'cursor-pointer');
                 dayElement.textContent = `${daysOfWeek[date.getDay()]} ${day}`;
                 if (day === currentDay) {
                     dayElement.id = 'currentDay';
@@ -439,7 +492,7 @@
                 slotDiv.className = 'flex justify-between items-center py-2';
 
                 const timeSpan = document.createElement('span');
-                timeSpan.className = 'px-6 py-2 rounded-2xl bg-white text-slate-800';
+                timeSpan.className = 'px-6 py-2 rounded-2xl bg-white text-blue-800';
                 timeSpan.textContent = `${time} น.`;
 
                 const statusButton = document.createElement('button');
@@ -448,7 +501,7 @@
                 statusButton.disabled = true;
 
                 const bookButton = document.createElement('button');
-                bookButton.className = `custom-button px-4 py-2 rounded-2xl ${info.status === 'Available' ? 'bg-slate-800 text-white' : 'bg-gray-100 text-gray-400'}`;
+                bookButton.className = `custom-button px-4 py-2 rounded-2xl ${info.status === 'Available' ? 'bg-pink-500 text-white' : 'bg-gray-100 text-gray-400'}`;
                 bookButton.innerHTML = `<i class="fas fa-calendar-alt"></i> นัดหมาย`;
                 bookButton.disabled = info.status !== 'Available';
                 bookButton.addEventListener('click', () => {
@@ -530,7 +583,7 @@
                 popupContent.innerHTML += `
                     <div class="flex justify-between my-4">
                         <button id="cancelButton" class="px-2 py-4 bg-gray-300 text-gray-700 rounded-2xl">ยกเลิก</button>
-                        <button id="confirmButton" class="px-2 py-4 bg-slate-800 text-white rounded-2xl mr-2">ยืนยันนัดหมาย</button>
+                        <button id="confirmButton" class="px-2 py-4 bg-pink-500 text-white rounded-2xl mr-2">ยืนยันนัดหมาย</button>
                     </div>
                 `;
                 document.getElementById('confirmButton').addEventListener('click', () => {
@@ -545,4 +598,5 @@
         }
     </script>
 </body>
+
 </html>
