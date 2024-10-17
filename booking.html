@@ -533,6 +533,9 @@
                 hidePopup();
                 const result = await response.text();
                 showPopup('สำเร็จ!', 'การนัดหมายเสร็จสมบูรณ์', 'success');
+                // ส่งข้อความแจ้งเตือนทาง LINE เมื่อบันทึกสำเร็จ
+                await sendTextMessage();
+
                 liff.closeWindow();
             } catch (error) {
                 console.error('There was a problem with the fetch operation:', error);
@@ -580,6 +583,27 @@
                 popupContent.innerHTML += `<div class="mt-4"><button onclick="hidePopup()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-2xl">ปิด</button></div>`;
             }
             popup.style.display = 'flex';
+        }
+
+          async function sendTextMessage() {
+            try {
+                // ตรวจสอบว่ามีการล็อกอินใน LIFF แล้วหรือไม่
+                if (!liff.isLoggedIn()) {
+                    liff.login(); // ถ้ายังไม่ได้ล็อกอิน ให้ทำการล็อกอิน
+                    return;
+                }
+
+                // ส่งข้อความ text ผ่าน LIFF SDK
+                await liff.sendMessages([
+                    {
+                        'type': 'text',
+                        'text': `แจ้งการนัดหมายสำเร็จ`
+                    }
+                ]);
+                console.log('Message sent successfully');
+            } catch (error) {
+                console.error('Error sending message:', error);
+            }
         }
     </script>
 </body>
