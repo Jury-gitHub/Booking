@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทันตกรรม KPJH</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+    <style>
+        body{font-family:"Noto Sans Thai", sans-serif;}
+        .bg-main{ background-color: #15803d; }
+        .text-main{color: #15803d;}
+        .bg-sub{ background-color: #f4fffb; }
+        .bg-sub2{ background-color: #faebd7; }
+        .bg-sub3{ background-color: #eb77b6; }
+        .border-main{ border:2px solid #eb77b6; }
+
+        /* Calendar specific styles */
+        .selected {
+            background-color: #eb77b6 !important; /* Selected day background */
+            color: white !important;
+            font-weight: bold;
+        }
+        .today {
+            border: 2px solid #15803d !important; /* Highlight today's date border */
+        }
+        .other-month {
+            color: #a0a0a0; /* Grey out days from other months */
+            background-color: #f0f0f0;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+        .day-header {
+            background-color: #f0f0f0;
+            padding: 8px 4px;
+            font-weight: bold;
+            color: #333;
+            border-radius: 8px;
+        }
+        .calendar-day {
+            padding: 12px 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid #e0e0e0;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column; /* Stack day number and status */
+            justify-content: center;
+            align-items: center;
+            min-height: 60px; /* Ensure consistent height and space for text */
+            font-size: 1.1em; /* Make day number slightly larger */
+        }
+        .calendar-day .day-number {
+            font-weight: bold;
+            margin-bottom: 2px; /* Space between number and status */
+        }
+        .calendar-day .day-status {
+            font-size: 0.75em; /* Smaller font for status text */
+            font-weight: normal;
+        }
+
+        /* Styles for 'Available', 'Closed', 'Full' days */
+        .day-available {
+            background-color: #d4edda; /* Light green */
+            color: #155724; /* Dark green text */
+        }
+        .day-closed {
+            background-color: #f8d7da; /* Light red */
+            color: #721c24; /* Darker red */
+            cursor: not-allowed;
+            border: 1px dashed #721c24;
+        }
+        .day-full {
+            background-color: #fff3cd; /* Light yellow/orange */
+            color: #856404; /* Darker yellow/orange */
+            cursor: not-allowed;
+            border: 1px dashed #856404;
+        }
+
+        /* Hover effects for available days */
+        .calendar-day:hover:not(.selected):not(.other-month):not(.day-closed):not(.day-full) {
+            background-color: #b5e0c5; /* Slightly darker green on hover */
+        }
+        /* No hover effect for closed/full days, or a subtle one */
+        .day-closed:hover, .day-full:hover {
+            opacity: 0.9; /* Slight visual feedback but still no click */
+        }
+
+        /* General UI improvements */
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(204, 255, 232, 0.7);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading-spinner {
+            border: 10px solid #FFFCF7;
+            border-radius: 50%;
+            border-top: 10px solid #f9a8d4;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgb(179 222 195 / 74%);            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        .popup-content {
+            background: white;
+            padding: 50px;
+            border-radius: 8px;
+            text-align: left;
+            width: 80%;
+            max-width: 450px;
+        }
+        #memberDataLoader {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);            
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .loading-container { position: relative; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .blink { animation: blink 1s infinite; }
+    </style>
+</head>
+<body class="bg-sub flex flex-col min-h-screen">
+    <!-- Header Section -->
+    <div class="bg-main to-slate-700 text-center text-white p-10">
+        <p class="text-xl">จองคิว</p>
+        <h1 class="text-3xl font-bold">ทันตกรรม KPJH</h1>
+        <p class="text-lg text-gray-200">รพ.ค่ายประจักษ์ฯ</p>
+    </div>
+
+    <!-- Global Loading Overlay -->
+    <div class="loading-overlay" id="globalLoadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="popup" id="popup">
+        <div class="max-w-md popup-content mx-auto" id="popupContent"></div>
+    </div>
+    
+    <div class=" w-full mx-auto rounded py-4 px-4 mb-4">
+        <form id="bookingForm" class="space-y-2 pt-2" novalidate>
+            <input type="hidden" name="action" value="makeBooking">
+
+            <!-- Step 0: Initial Selection -->
+            <div id="step0" class="grid gap-5 max-w-sm mx-auto">
+                <div class="text-center font-semibold mb-6">
+                    <h2 class="text-3xl text-main">เลือกบริการ</h2>
+                </div>
+                <div class="flex justify-between">
+                  <button type="button" onclick="selectOption(1)"
+                  class="w-full h-48 mx-2 bg-blue-200 text-black py-3 rounded-2xl">คลินิก(นอกเวลา) <p
+                      class="text-black"> วันปกติ </p></button>
+              <button type="button" onclick="selectOption(2)"
+                  class="w-full h-48 mx-2 bg-pink-300 text-black py-3 rounded-2xl">คลินิก(นอกเวลา) <p
+                      class="text-black"> เสาร์-อาทิตย์ </p></button>
+                </div>
+            </div>
+
+            <!-- Step 1: Booking Form -->
+            <div id="step1" class="max-w-sm mx-auto" style="display:none;">
+                <div class="flex mb-4">
+                    <span class="bg-white flex items-center border rounded-2xl p-2 mr-2 w-32">
+                        <img src="https://img.icons8.com/?size=100&id=22128&format=png&color=000000" class="w-6 h-6 mr-1">
+                        <span class="text-black"> บริการ </span>
+                    </span>
+                    <select id="service" name="service" class="rounded-2xl bg-white border text-gray-900 block flex-1 px-4 w-full" placeholder="ตัวเลือกบริการ"></select>
+                </div>
+                <div class="flex mb-4">
+                    <span class="bg-white flex items-center border rounded-2xl p-2 mr-2 w-32">
+                        <img src="https://img.icons8.com/?size=100&id=Ynh2i0jcHfB4&format=png&color=000000" class="w-6 h-6 mr-1">
+                        <span class="text-black"> สาขา </span>
+                    </span>
+                    <select id="locationservice" name="locationservice" class="rounded-2xl bg-white border text-gray-900 block flex-1 px-4 w-full" placeholder="ตัวเลือกสถานที่"></select>
+                </div>
+                <div class="bg-sub4 px-4 py-4 my-4 rounded-2xl">
+                    <input type="hidden" id="displayName" name="displayName">
+                    <div class="loading-container">
+                        <div id="memberDataLoader" style="display:none;">
+                            <div class="text-center text-white">ค้นหารายชื่อ..</div>
+                        </div>
+                        <div class="text-main pb-4">ฟอร์มข้อมูล</div>
+                        <div class="flex justify-center items-center">
+                            <div class="max-w-md">
+                                <div class="flex mb-6">
+                                    <span class="text-center bg-sub3 rounded-2xl mr-2 p-2 w-32"><span class="text-white text-sm">ชื่อ สกุล</span></span>
+                                    <input type="text" id="name" name="name" class="w-full p-2 shadow-sm rounded-2xl" required>
+                                </div>
+                                <div class="flex  mb-6">
+                                  <span class="text-center bg-sub3 rounded-2xl mr-2 p-2 w-32"><span class="text-white text-sm">เบอร์ติดต่อ</span></span>
+                                  <input type="tel" id="phonenumber" name="phonenumber" class="w-full p-2 shadow-sm rounded-2xl" required>
+                              </div>
+                                   <div class="flex  mb-6">
+                                    <span class="text-center  bg-sub3 rounded-2xl mr-2 p-2 w-32"><span class="text-white text-sm">สิทธิการรักษา</span></span>
+                                    <input type="text" id="nickname" name="nickname" class="w-full p-2 shadow-sm rounded-2xl">
+                                </div>
+                              
+                                <div class="flex">
+                                    <span class="text-center bg-sub3 rounded-2xl mr-2 p-2 w-32"><span class="text-white text-sm">หมายเหตุ</span></span>
+                                    <input type="text" id="note" name="note" class="w-full p-2 shadow-sm rounded-2xl">
+                                </div>
+                                <input type="hidden" id="userlineid" name="userlineid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="buttons" class="flex">
+                    <button type="button" onclick="prevStep0()" class="w-1/3 p-2 mt-5 mr-2 bg-white shadow-sm text-main py-3 rounded-2xl">กลับ</button>
+                    <button type="button" onclick="nextStep()" class="w-2/3 bg-sub3 text-white py-3 mt-4 shadow-sm rounded-2xl">ถัดไป</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Date and Time Selection -->
+            <div id="step2" class="grid gap-4 max-w-sm mx-auto" style="display:none;">
+                <div class="text-center font-semibold mb-6">
+                    <div class="flex justify-center space-x-2">
+                        <select id="monthSelect" aria-label="Month" class="text-center bg-white text-black w-1/2 border-2 border-main rounded-2xl px-2 py-4">
+                            <option value="0">มกราคม</option>
+                            <option value="1">กุมภาพันธ์</option>
+                            <option value="2">มีนาคม</option>
+                            <option value="3">เมษายน</option>
+                            <option value="4">พฤษภาคม</option>
+                            <option value="5">มิถุนายน</option>
+                            <option value="6">กรกฎาคม</option>
+                            <option value="7">สิงหาคม</option>
+                            <option value="8">กันยายน</option>
+                            <option value="9">ตุลาคม</option>
+                            <option value="10">พฤศจิกายน</option>
+                            <option value="11">ธันวาคม</option>
+                        </select>
+                        <select id="yearSelect" aria-label="Year" class="text-center bg-white text-black w-1/2 border-2 border-main rounded-2xl px-2 py-4"></select>
+                    </div>
+                </div>
+                <!-- Calendar Grid -->
+                <div id="calendar" class="calendar-grid mb-4">
+                    <div class="day-header">อา.</div>
+                    <div class="day-header">จ.</div>
+                    <div class="day-header">อ.</div>
+                    <div class="day-header">พ.</div>
+                    <div class="day-header">พฤ.</div>
+                    <div class="day-header">ศ.</div>
+                    <div class="day-header">ส.</div>
+                </div>
+                <!-- End Calendar Grid -->
+
+                <div id="availability" class="max-w-sm mx-auto space-y-2"></div>
+              
+                <div class="hidden">
+                    <label for="time" class="block text-sm">Time:</label>
+                    <input type="time" id="time" name="time" required readonly class="w-full px-3 py-3 border border-blue-900 rounded-2xl">
+                </div>
+                <div class="hidden text-center">
+                    <input type="submit" value="Submit" class="px-6 py-4 bg-main text-black font-semibold rounded-2xl">
+                </div>
+                <button type="button" onclick="prevStep()" class="w-32 p-2 mt-5 bg-white text-main py-3 shadow-sm rounded-2xl">กลับหน้าหลัก</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const globalLoadingOverlay = document.getElementById('globalLoadingOverlay');
+         let WEB_APP_URL = '';
+        const WEB_APP_URL_1 = 'https://script.google.com/macros/s/AKfycbzcruPk0O2BBYqgyLPEL_ant8_3QAMbVwX6cQbxZqFSg-6Jf6l4SpuQsvNChXINlgNvyQ/exec';
+        const WEB_APP_URL_2 = 'https://script.google.com/macros/s/AKfycbyugQX48PKvvZ76A9JOLabmNl3yNuMM2lmuvvhQnNfw6w9lEWy2GuCgpS2cxoyBqyOdyA/exec';
+
+        const WEB_APP_MEMBER_URL = 'https://script.google.com/macros/s/AKfycbw9CV9X8Uj84JXhGUJ8JEMdlIXp2vvwHhWCe_sBtYtbPzivdsRzj7E4uSuERcqmBFON/exec';
+        const LIFF_ID = '2006332258-AOqXqOdb';
+
+        let isLiffInitialized = false;
+        let liffProfile = null;
+        let selectedServiceType = ''; 
+
+        // Define static closed dates directly in the frontend
+        // This is a client-side hardcoded list. If you want this to come from backend,
+        // you'd need a separate Apps Script endpoint for it (or fix getDailyStatusSummary).
+        const STATIC_CLOSED_DATES = {
+            'normal': [ // For WEB_APP_URL_1 (normal clinic)
+                // '2024-07-28', // Example: July 28, 2024
+                // Add more dates here in 'YYYY-MM-DD' format
+            ],
+            'weekend': [ // For WEB_APP_URL_2 (weekend clinic)
+                // '2024-08-15', // Example: Aug 15, 2024
+            ]
+        };
+
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            showLoading(true);
+            try {
+                if (typeof liff !== 'undefined' && typeof liff.init === 'function') {
+                    await liff.init({ liffId: LIFF_ID });
+                    isLiffInitialized = true;
+                    if (liff.isLoggedIn()) {
+                        liffProfile = await liff.getProfile();
+                        document.getElementById('userlineid').value = liffProfile.userId;
+                        document.getElementById('displayName').value = liffProfile.displayName;
+                        await fetchData(liffProfile.userId); 
+                    } else {
+                        console.log('LIFF not logged in, or not in LIFF environment. Proceeding with manual input.');
+                    }
+                } else {
+                    console.warn('LIFF SDK not available or not in LIFF environment. Proceeding without LIFF features.');
+                    isLiffInitialized = false;
+                }
+            } catch (error) {
+                console.warn('LIFF initialization failed. Proceeding without LIFF features.', error);
+                isLiffInitialized = false;
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        async function selectOption(option) {
+            if (option === 1) {
+                WEB_APP_URL = WEB_APP_URL_1;
+                selectedServiceType = 'normal';
+            } else if (option === 2) {
+                WEB_APP_URL = WEB_APP_URL_2;
+                selectedServiceType = 'weekend';
+            }
+
+            document.getElementById('step0').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
+            
+            showLoading(true);
+            await fetchDropdownData(); 
+            
+            const currentDate = new Date();
+            populateYearSelect(currentDate.getFullYear());
+            monthSelect.value = currentDate.getMonth();
+            yearSelect.value = currentDate.getFullYear();
+            await updateCalendar(currentDate.getFullYear(), currentDate.getMonth()); 
+            showLoading(false);
+        }
+
+        async function fetchData(userId) {
+            const memberDataLoader = document.getElementById('memberDataLoader');
+            memberDataLoader.style.display = 'flex';
+            try {
+                const response = await fetch(WEB_APP_MEMBER_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'fetchData', userId: userId })
+                });
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    const row = data.find(r => r[1] === userId);
+                    if (row) {
+                        displayData(row);
+                    } else {
+                        console.log('No member data found for userId:', userId);
+                    }
+                } else {
+                    console.log('No member data returned or empty array.');
+                }
+            } catch (error) {
+                console.error('Error fetching member data:', error);
+            } finally {
+                memberDataLoader.style.display = 'none';
+            }
+        }
+
+        function displayData(row) {
+            document.getElementById('userlineid').value = row[1] || ''; 
+            document.getElementById('name').value = row[2] || '';      
+            document.getElementById('phonenumber').value = row[3] || ''; 
+            document.getElementById('nickname').value = row[4] || '';   
+        }
+
+        function showLoading(isLoading) {
+            globalLoadingOverlay.style.display = isLoading ? 'flex' : 'none';
+        }
+
+        let currentStep = 1;
+        let selectedDate = ''; 
+        let isSubmitting = false;
+
+       function nextStep() {
+            if (currentStep === 1) {
+                const name = document.getElementById('name').value.trim();
+                const phonenumber = document.getElementById('phonenumber').value.trim();
+
+                if (name === '' || phonenumber === '') {
+                    alert('กรุณากรอกชื่อและเบอร์โทรก่อนดำเนินการต่อ');
+                    return;
+                }
+            }
+
+            if (currentStep < 2) {
+                document.getElementById(`step${currentStep}`).style.display = 'none';
+                currentStep++;
+                document.getElementById(`step${currentStep}`).style.display = 'block';
+            }
+        }
+
+        function prevStep0() {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step0').style.display = 'grid';
+            currentStep = 0; 
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                document.getElementById(`step${currentStep}`).style.display = 'none';
+                currentStep--;
+                document.getElementById(`step${currentStep}`).style.display = 'block';
+            }
+        }
+
+        async function fetchDropdownData() {
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=fetchServicesAndlocationservice`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                populateDropdown('service', data.services);
+                populateDropdown('locationservice', data.locationservice);
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+            }
+        }
+
+        function populateDropdown(dropdownId, items) {
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.innerHTML = '';
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
+                dropdown.appendChild(option);
+            });
+        }
+
+        const form = document.getElementById('bookingForm');
+        const monthSelect = document.getElementById('monthSelect');
+        const yearSelect = document.getElementById('yearSelect');
+        const calendarDiv = document.getElementById('calendar');
+        const availabilityDiv = document.getElementById('availability');
+        const timeInput = document.getElementById('time');
+
+        monthSelect.addEventListener('change', () => updateCalendar(parseInt(yearSelect.value), parseInt(monthSelect.value)));
+        yearSelect.addEventListener('change', () => updateCalendar(parseInt(yearSelect.value), parseInt(monthSelect.value)));
+
+        const daysOfWeekNames = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.']; 
+
+        function populateYearSelect(currentYear) {
+            yearSelect.innerHTML = '';
+            for (let i = currentYear; i <= currentYear + 3; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                yearSelect.appendChild(option);
+            }
+        }
+
+        // --- NEW: Function to check availability for a given date string ---
+        // This is essentially moving the logic from Apps Script's getDailyStatusSummary
+        // to the frontend, but calling the existing checkAvailability endpoint.
+        async function getDailyStatusFromTimeSlots(dateStr) {
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=checkAvailability&date=${dateStr}`);
+                if (!response.ok) {
+                    // console.warn(`Failed to fetch time slots for ${dateStr}. Assuming Closed.`);
+                    return 'Closed'; // If cannot fetch, assume it's closed
+                }
+                const timeSlots = await response.json(); // This is the actual time slot availability
+
+                let totalSlots = 0;
+                let availableSlots = 0;
+                for (const time in timeSlots) {
+                    totalSlots++;
+                    if (timeSlots[time].status === 'Available') {
+                        availableSlots++;
+                    }
+                }
+
+                if (totalSlots === 0) {
+                    return 'Closed'; // No time slots defined for this day
+                } else if (availableSlots === 0) {
+                    return 'Full'; // All defined time slots are booked
+                } else {
+                    return 'Available'; // Has available slots
+                }
+
+            } catch (error) {
+                console.error(`Error checking time slots for ${dateStr}:`, error);
+                return 'Closed'; // On any error, treat as closed
+            }
+        }
+
+
+        async function updateCalendar(year, month) {
+            showLoading(true);
+            try {
+                const existingDays = calendarDiv.querySelectorAll('.calendar-day');
+                existingDays.forEach(el => el.remove());
+
+                const today = new Date();
+                const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()); 
+
+                const firstDayOfMonth = new Date(year, month, 1);
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const firstDayOfWeek = firstDayOfMonth.getDay(); 
+
+                let initialDateSelected = false;
+                let firstAvailableDateElement = null; 
+
+                const lastDayOfPrevMonth = new Date(year, month, 0).getDate();
+                for (let i = 0; i < firstDayOfWeek; i++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.classList.add('calendar-day', 'other-month');
+                    dayElement.innerHTML = `<span class="day-number">${lastDayOfPrevMonth - (firstDayOfWeek - 1 - i)}</span>`;
+                    calendarDiv.appendChild(dayElement);
+                }
+
+                // Collect all promises for fetching daily statuses in parallel
+                const dailyStatusPromises = [];
+                const daysToProcess = [];
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                    
+                    daysToProcess.push({ date, dateStr, day });
+                    dailyStatusPromises.push(getDailyStatusFromTimeSlots(dateStr));
+                }
+
+                // Wait for all daily statuses to be fetched
+                const allDailyStatuses = await Promise.all(dailyStatusPromises);
+                const dailyStatusMap = {};
+                daysToProcess.forEach((item, index) => {
+                    dailyStatusMap[item.dateStr] = allDailyStatuses[index];
+                });
+
+
+                for (let i = 0; i < daysToProcess.length; i++) {
+                    const { date, dateStr, day } = daysToProcess[i];
+                    const dayElement = document.createElement('div');
+                    dayElement.classList.add('calendar-day');
+                    
+                    if (date.toDateString() === today.toDateString()) {
+                        dayElement.classList.add('today');
+                    }
+
+                    // Get status from the client-side derived map
+                    let status = dailyStatusMap[dateStr]; 
+                    let statusText = '';
+                    let clickable = true;
+
+                    // Client-side override for static closed dates (holidays, etc.)
+                    // Check against STATIC_CLOSED_DATES array
+                    const currentServiceClosedDates = STATIC_CLOSED_DATES[selectedServiceType] || [];
+                    if (currentServiceClosedDates.includes(dateStr)) {
+                        status = 'Closed';
+                    }
+                    
+                   // แทนที่โค้ดส่วน switch(status) … ด้วยโลジックแบบนี้
+// ที่บรรทัดก่อน switch ให้ remove ขอเดิม แล้วเพิ่ม:
+
+// 1. ถ้าวันในอดีต
+if (date < startOfToday) {
+    dayElement.classList.add('day-expired');
+    statusText = '';             // ไม่แสดงข้อความ
+    clickable = false;
+}
+// 2. ถ้าอยู่ใน STATIC_CLOSED_DATES (holidays)
+else if (currentServiceClosedDates.includes(dateStr)) {
+    dayElement.classList.add('day-closed');
+    statusText = 'หยุด';
+    clickable = false;
+}
+// 3. ถ้า full booking
+else if (dailyStatusMap[dateStr] === 'Full') {
+    dayElement.classList.add('day-full');
+    statusText = 'เต็ม';
+    clickable = false;
+}
+// 4. available
+else {
+    dayElement.classList.add('day-available');
+    statusText = 'ว่าง';
+}
+
+// สุดท้าย ใส่ HTML ของวัน
+dayElement.innerHTML = `
+    <span class="day-number">${day}</span>
+    <span class="day-status">${statusText}</span>
+`;
+
+                    if (clickable) {
+                        dayElement.addEventListener('click', () => {
+                            document.querySelectorAll('.calendar-day').forEach(el => el.classList.remove('selected'));
+                            dayElement.classList.add('selected');
+                            selectDate(year, month, day);
+                        });
+                        if (status === 'Available' && !initialDateSelected) {
+                            if (date.toDateString() === today.toDateString()) { 
+                                dayElement.classList.add('selected');
+                                selectDate(year, month, day);
+                                initialDateSelected = true;
+                            } else if (!firstAvailableDateElement && date >= startOfToday) { // Only consider future available dates
+                                firstAvailableDateElement = { year, month, day, element: dayElement };
+                            }
+                        }
+                    } else {
+                        dayElement.style.cursor = 'not-allowed';
+                    }
+                    calendarDiv.appendChild(dayElement);
+                }
+
+                if (!initialDateSelected && firstAvailableDateElement) {
+                    firstAvailableDateElement.element.classList.add('selected');
+                    selectDate(firstAvailableDateElement.year, firstAvailableDateElement.month, firstAvailableDateElement.day);
+                    initialDateSelected = true; 
+                } else if (!initialDateSelected) {
+                    availabilityDiv.innerHTML = '<div class="text-center text-red-500 py-4">ไม่มีช่วงเวลาที่ว่างสำหรับเดือนนี้</div>';
+                    selectedDate = ''; 
+                    availabilityDiv.innerHTML = ''; 
+                }
+
+
+                const lastDayOfMonth = new Date(year, month, daysInMonth);
+                const lastDayOfWeek = lastDayOfMonth.getDay();
+                for (let i = 1; i <= (6 - lastDayOfWeek); i++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.classList.add('calendar-day', 'other-month');
+                    dayElement.innerHTML = `<span class="day-number">${i}</span>`;
+                    calendarDiv.appendChild(dayElement);
+                }
+            } catch (error) {
+                console.error('Failed to update calendar:', error);
+                showPopup('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดปฏิทินได้ โปรดลองใหม่อีกครั้ง', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function selectDate(year, month, day) {
+            selectedDate = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            showLoading(true);
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=checkAvailability&date=${selectedDate}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const availability = await response.json();
+                updateAvailability(availability);
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+                showPopup('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลช่วงเวลาได้ โปรดลองใหม่อีกครั้ง', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function updateAvailability(availability) {
+            availabilityDiv.innerHTML = '';
+            if (Object.keys(availability).length === 0) {
+                availabilityDiv.innerHTML = '<div class="text-center text-red-500 py-4">ไม่มีช่วงเวลาที่ว่างสำหรับวันนี้</div>';
+                return;
+            }
+
+            for (const [time, info] of Object.entries(availability)) {
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'flex justify-between items-center py-2';
+
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'px-6 py-2 rounded-2xl bg-white text-main shadow-sm';
+                timeSpan.textContent = `${time} น.`;
+
+                const statusButton = document.createElement('button');
+                statusButton.className = `px-6 py-2 rounded-2xl ${info.status === 'Available' ? 'bg-green-200 text-green-600 shadow-sm' : 'bg-red-200 shadow-sm text-red-600'}`;
+                statusButton.textContent = info.status === 'Available' ? `ว่าง (${info.remaining}/${info.total})` : `เต็ม (${info.remaining}/${info.total})`;
+                statusButton.disabled = true;
+
+                const bookButton = document.createElement('button');
+                bookButton.className = `custom-button px-4 py-2 shadow-sm rounded-2xl ${info.status === 'Available' ? 'bg-sub3 text-white' : 'bg-gray-100 text-gray-400'}`;
+                bookButton.innerHTML = `<i class="fas fa-calendar-alt"></i> จองคิว`;
+                bookButton.disabled = info.status !== 'Available';
+                bookButton.addEventListener('click', () => {
+                    timeInput.value = time.padStart(5, '0');
+                    showPopup('ยืนยันการนัดหมาย', `
+                        <p>บริการ: ${form.service.value}</p>
+                        <p>สาขา: ${form.locationservice.value}</p>
+                        <p>ชื่อ: ${form.name.value}</p>  
+                        <p>เบอร์ติดต่อ: ${form.phonenumber.value}</p>              
+                        <p>หมายเหตุ: ${form.note.value || '-'}</p>
+                        <p>วันที่: ${selectedDate}</p>
+                        <p>เวลา: ${timeInput.value}</p>
+                    `, 'confirm');
+                });
+
+                slotDiv.appendChild(timeSpan);
+                slotDiv.appendChild(statusButton);
+                slotDiv.appendChild(bookButton);
+                availabilityDiv.appendChild(slotDiv);
+            }
+        }
+
+        function hidePopup() {
+            document.getElementById('popup').style.display = 'none';
+        }
+
+        async function submitBooking() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+            showLoading(true);
+            try {
+                const formData = new FormData(form);
+                formData.append('date', selectedDate);
+                
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                hidePopup(); 
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+                
+                const result = await response.text(); 
+                console.log("Booking submission result:", result);
+                
+                showPopup('สำเร็จ!', 'การนัดหมายเสร็จสมบูรณ์', 'success');
+                
+                if (isLiffInitialized && typeof liff.isLoggedIn === 'function' && liff.isLoggedIn()) {
+                    await sendTextMessage();
+                    if (typeof liff.closeWindow === 'function') { 
+                        liff.closeWindow(); 
+                    }
+                }
+
+            } catch (error) {
+                console.error('There was a problem with the booking operation:', error);
+                showPopup('เกิดข้อผิดพลาด', `ไม่สามารถส่งข้อมูลได้: ${error.message || 'โปรดลองใหม่อีกครั้ง'}`, 'error');
+            } finally {
+                showLoading(false);
+                isSubmitting = false;
+            }
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!selectedDate || !timeInput.value) {
+                showPopup('เกิดข้อผิดพลาด', 'กรุณาเลือกวันที่และเวลา', 'error');
+                return;
+            }
+            showPopup('<p class="text-blue-900">📆 ยืนยันการนัดหมาย</p>', `
+                <p>บริการ: ${form.service.value}</p>
+                <p>สาขา: ${form.locationservice.value}</p>
+                <p>ชื่อ: ${form.name.value}</p>  
+                <p>เบอร์ติดต่อ: ${form.phonenumber.value}</p>              
+                <p>หมายเหตุ: ${form.note.value || '-'}</p>
+                <p>วันที่: ${selectedDate}</p>
+                <p>เวลา: ${timeInput.value}</p>
+            `, 'confirm');
+        });
+
+        function showPopup(title, content, type) {
+            const popup = document.getElementById('popup');
+            const popupContent = document.getElementById('popupContent');
+            popupContent.innerHTML = `<h2 class="text-xl mb-4 font-bold text-center">${title}</h2><div class="text-gray-700">${content}</div>`;
+            if (type === 'confirm') {
+                popupContent.innerHTML += `
+                    <div class="flex justify-between my-6">
+                        <button id="cancelButton" class="w-1/2 p-3 mr-2 bg-gray-300 text-gray-700 rounded-2xl font-semibold">ยกเลิก</button>
+                        <button id="confirmButton" class="w-1/2 p-3 bg-main text-white rounded-2xl ml-2 font-semibold">ยืนยันนัดหมาย</button>
+                    </div>
+                `;
+                document.getElementById('confirmButton').addEventListener('click', () => {
+                    document.getElementById('confirmButton').innerText = 'กำลังบันทึก...';
+                    document.getElementById('confirmButton').disabled = true;
+                    submitBooking();
+                });
+                document.getElementById('cancelButton').addEventListener('click', hidePopup);
+            } else { 
+                popupContent.innerHTML += `<div class="mt-6 text-center"><button onclick="hidePopup()" class="px-6 py-3 bg-gray-300 text-gray-700 rounded-2xl font-semibold">ปิด</button></div>`;
+            }
+            popup.style.display = 'flex';
+        }
+
+        async function sendTextMessage() {
+            if (isLiffInitialized && typeof liff.isLoggedIn === 'function' && liff.isLoggedIn()) {
+                try {
+                    await liff.sendMessages([
+                        {
+                            'type': 'text',
+                            'text': `แจ้งการนัดหมายสำเร็จ\nบริการ: ${form.service.value}\nวันที่: ${selectedDate}\nเวลา: ${timeInput.value}\nชื่อ: ${form.name.value}\nเบอร์ติดต่อ: ${form.phonenumber.value}`
+                        }
+                    ]);
+                    console.log('Message sent successfully via LIFF');
+                } catch (error) {
+                    console.error('Error sending message via LIFF:', error);
+                }
+            } else {
+                console.log('LIFF not active, cannot send message.');
+            }
+        }
+    </script>
+</body>
+</html>
