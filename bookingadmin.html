@@ -2,858 +2,1012 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - ระบบจัดการการนัดหมาย ทันตกรรม KPJH</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <!-- Font Awesome CDN for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    /* Customizing Tailwind colors and basic styles */
-    :root {
-      --primary-green: #15803d;
-      --primary-green-dark: #106c33;
-    }
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทันตกรรม KPJH</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+    <style>
+        body {
+            font-family: "Noto Sans Thai", sans-serif;
+            background-color: #f0fdf4;
+            /* Light green background for body */
+        }
 
-    .bg-primary-green {
-      background-color: var(--primary-green);
-    }
+        .bg-main {
+            background-color: #15803d;
+        }
 
-    .hover\:bg-primary-green-dark:hover {
-      background-color: var(--primary-green-dark);
-    }
+        .text-main {
+            color: #15803d;
+        }
 
-    .text-primary-green {
-      color: var(--primary-green);
-    }
+        .bg-sub {
+            background-color: #f4fffb;
+        }
 
-    .focus\:ring-primary-green:focus {
-      --tw-ring-color: var(--primary-green);
-    }
+        .bg-sub2 {
+            background-color: #faebd7;
+        }
 
-    .focus\:border-primary-green:focus {
-      border-color: var(--primary-green);
-    }
+        .bg-sub3 {
+            background-color: #eb77b6;
+            /* A vibrant pink */
+        }
 
-    .loader {
-      border-top-color: var(--primary-green);
-      animation: spin 1s linear infinite;
-      border: 8px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-    }
+        .border-main {
+            border: 2px solid #eb77b6;
+        }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
 
-    /* Adjusted styles for consistency and modern look */
-    input[type="text"],
-    input[type="date"],
-    input[type="time"],
-    select {
-    padding: 0.6rem 1rem;
-    border-radius: 0.45rem;
-    border: 1px solid #c7c7c7;
-    font-size: 0.875rem;
-    }
+        /* Calendar specific styles */
+        .selected {
+            background-color: #eb77b6 !important;
+            /* Selected day background */
+            color: white !important;
+            font-weight: bold;
+        }
 
-    button {
-      border-radius: 0.75rem;
-      padding: 0.75rem 1.25rem;
-      font-weight: 600;
-    }
+        .today {
+            border: 2px solid #15803d !important;
+            /* Highlight today's date border */
+        }
 
-    .table-header-sortable {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      user-select: none;
-    }
+        .other-month {
+            color: #a0a0a0;
+            /* Grey out days from other months */
+            background-color: #f0f0f0;
+            cursor: not-allowed;
+            /* Indicate not selectable */
+        }
 
-    .table-header-sortable .sort-icon {
-      margin-left: 4px;
-      font-size: 0.75em;
-      opacity: 0.5;
-      width: 1em;
-      text-align: center;
-    }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
 
-    .table-header-sortable.asc .sort-icon::after {
-      content: '▲';
-      opacity: 1;
-      color: var(--primary-green);
-    }
+        .day-header {
+            background-color: #e0e0e0;
+            padding: 8px 4px;
+            font-weight: bold;
+            color: #333;
+            border-radius: 8px;
+        }
 
-    .table-header-sortable.desc .sort-icon::after {
-      content: '▼';
-      opacity: 1;
-      color: var(--primary-green);
-    }
+        .calendar-day {
+            padding: 12px 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid #e0e0e0;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 60px;
+            font-size: 1.1em;
+        }
 
-    /* Adjust body to use flex for sidebar and main content */
-    body {
-      display: flex;
-      min-height: 100vh;
-      background-color: #f8fafc;
-      color: #334155;
-    }
+        .calendar-day .day-number {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
 
-    /* Styles for status filter buttons */
-    .status-filter-btn {
-      padding: 0.5rem 0.75rem;
-      font-size: 0.875rem;
-      background-color: #e2e8f0;
-      color: #4a5568;
-      border: 1px solid #cbd5e0;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-    }
+        .calendar-day .day-status {
+            font-size: 0.75em;
+            font-weight: normal;
+        }
 
-    .status-filter-btn:hover {
-      background-color: #cbd5e0;
-    }
+        /* Styles for 'Available', 'Closed', 'Full', 'Expired' days */
+        .day-available {
+            background-color: #d4edda;
+            /* Light green */
+            color: #155724;
+            /* Dark green text */
+        }
 
-    .status-filter-btn.active {
-      background-color: var(--primary-green);
-      color: white;
-      border-color: var(--primary-green-dark);
-      box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.3);
-    }
-  </style>
+        .day-closed {
+            background-color: #f8d7da;
+            /* Light red */
+            color: #721c24;
+            /* Darker red */
+            cursor: not-allowed;
+            border: 1px dashed #721c24;
+        }
+
+        .day-full {
+            background-color: #fff3cd;
+            /* Light yellow/orange */
+            color: #856404;
+            /* Darker yellow/orange */
+            cursor: not-allowed;
+            border: 1px dashed #856404;
+        }
+
+        .day-expired {
+            background-color: #e9e9e9;
+            /* Light grey for past dates */
+            color: #a0a0a0;
+            /* Grey text */
+            cursor: not-allowed;
+            border: 1px solid #d0d0d0;
+        }
+
+        /* Hover effects for available days */
+        .calendar-day:hover:not(.selected):not(.other-month):not(.day-closed):not(.day-full):not(.day-expired) {
+            background-color: #b5e0c5;
+            /* Slightly darker green on hover */
+        }
+
+        /* No hover effect for closed/full/expired days, or a subtle one */
+        .day-closed:hover,
+        .day-full:hover,
+        .day-expired:hover {
+            opacity: 0.9;
+            /* Slight visual feedback but still no click */
+        }
+
+        /* General UI improvements */
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(204, 255, 232, 0.7);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-spinner {
+            border: 10px solid #FFFCF7;
+            border-radius: 50%;
+            border-top: 10px solid #f9a8d4;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgb(179 222 195 / 74%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 50px;
+            border-radius: 12px;
+            text-align: left;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        #memberDataLoader {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-container {
+            position: relative;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+    </style>
 </head>
 
-<body>
-  <!-- Sidebar -->
-  <aside class="w-64 bg-white text-gray-800 shadow-lg p-6 flex flex-col min-h-screen">
-    <h2 class="text-2xl font-bold mb-8 text-primary-green">ทันตกรรม KPJH</h2>
-
-    <ul class="space-y-4 flex-1">
-      <li>
-        <a href="#"
-          class="flex items-center p-3 rounded-lg text-white bg-primary-green bg-opacity-10 font-bold transition duration-300">
-          <i class="fas fa-tachometer-alt mr-3 text-lg"></i>Dashboard
-        </a>
-      </li>
-      <li>
-        <a href="#"
-          class="flex items-center p-3 rounded-lg text-gray-600 hover:text-primary-green hover:bg-primary-green hover:bg-opacity-5 font-medium transition duration-300">
-          <i class="fas fa-calendar-alt mr-3 text-lg"></i>Booking
-        </a>
-      </li>
-      <li>
-        <a href="#"
-          class="flex items-center p-3 rounded-lg text-gray-600 hover:text-primary-green hover:bg-primary-green hover:bg-opacity-5 font-medium transition duration-300">
-          <i class="fas fa-cog mr-3 text-lg"></i>Setting
-        </a>
-      </li>
-    </ul>
-  </aside>
-
-  <!-- Main Content Area (Dashboard View) -->
-  <main class="flex-1 bg-gray-100 p-8 flex flex-col">
-    <!-- Current Date Display -->
-    <div class="mb-6">
-      <p class="text-xl font-bold text-gray-700">
-        ข้อมูลการนัดหมาย
-        <span id="currentDateDisplay" class="text-base font-normal text-gray-500 ml-4"></span>
-      </p>
+<body class="bg-sub flex flex-col min-h-screen">
+    <!-- Header Section -->
+    <div class="bg-main text-center text-white p-10 pb-6 rounded-b-2xl shadow-md">
+        <p class="text-xl">จองคิว</p>
+        <h1 class="text-3xl font-bold">ทันตกรรม KPJH</h1>
+        <p class="text-lg text-gray-200">รพ.ค่ายประจักษ์ฯ</p>
     </div>
 
-    <!-- Filter Section -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mb-6 bg-white p-4 rounded-lg shadow-md">
-      <div>
-        <label for="filterName" class="block text-sm font-medium text-gray-700 mb-0.5">ชื่อ</label>
-        <input type="text" id="filterName"
-          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green"
-          placeholder="ค้นหาชื่อ">
-      </div>
-      <!-- NEW: Service Filter as Dropdown -->
-      <div>
-        <label for="filterService" class="block text-sm font-medium text-gray-700 mb-0.5">บริการ</label>
-        <select id="filterService"
-          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green">
-          <option value="">ทั้งหมด</option>
-          <!-- Options populated by JS -->
-        </select>
-      </div>
-      <!-- NEW: Location Filter as Dropdown -->
-      <div>
-        <label for="filterLocation" class="block text-sm font-medium text-gray-700 mb-0.5">สถานที่</label>
-        <select id="filterLocation"
-          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green">
-          <option value="">ทั้งหมด</option>
-          <!-- Options populated by JS -->
-        </select>
-      </div>
-      <div>
-        <label for="filterPhoneNumber" class="block text-sm font-medium text-gray-700 mb-0.5">เบอร์โทร</label>
-        <input type="text" id="filterPhoneNumber"
-          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green"
-          placeholder="ค้นหาเบอร์โทร">
-      </div>
-
-      <!-- Sort Order Dropdown -->
-      <div>
-        <label for="sortOrder" class="block text-sm font-medium text-gray-700 mb-0.5">เรียงข้อมูล</label>
-        <select id="sortOrder"
-          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green">
-          <option value="date-today-first">วันที่ (วันนี้ก่อน, ใหม่สุด)</option>
-          <option value="date-asc">วันที่ (เก่าสุดไปใหม่สุด)</option>
-          <option value="date-desc">วันที่ (ใหม่สุดไปเก่าสุด)</option>
-        </select>
-      </div>
-
-      <!-- NEW: Clear All Filters Button -->
-      <div class="flex items-end"> <!-- Use flex to align button at the bottom -->
-         <button id="clearAllFiltersButton"
-          class=" px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300">
-          <i class="fas fa-times-circle mr-2"></i>ล้าง</button> 
-      </div>
-      <!-- END NEW Clear All Filters Button -->
-
-      <!-- Status Filter as Buttons -->
-      <div class="col-span-full">
-        <label class="block text-sm font-medium text-gray-700 mb-0.5">สถานะ</label>
-        <div id="statusFilterButtons" class="flex flex-wrap gap-2">
-          <button type="button" class="status-filter-btn rounded-lg" data-status="รอการยืนยัน">รอการยืนยัน</button>
-          <button type="button" class="status-filter-btn rounded-lg" data-status="ยืนยันแล้ว">ยืนยันแล้ว</button>
-          <button type="button" class="status-filter-btn rounded-lg" data-status="ยกเลิก">ยกเลิก</button>
-          <button type="button" class="status-filter-btn rounded-lg" data-status="เสร็จสิ้น">เสร็จสิ้น</button>
-        </div>
-      </div>
+    <!-- Global Loading Overlay -->
+    <div class="loading-overlay" id="globalLoadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="popup" id="popup">
+        <div class="popup-content" id="popupContent"></div>
     </div>
 
-    <!-- Table Section -->
-    <div id="filteredData" class="overflow-x-auto bg-white rounded-lg shadow-md p-4">
-      <table class="min-w-full text-sm">
-        <thead>
-          <tr class="bg-gray-50 border-b border-gray-200">
-            <th class="hidden px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">Line ID</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">ชื่อ</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">บริการ</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">สถานที่</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">เบอร์โทร</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">อีเมล</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">วันที่</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">เวลา</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">สถานะ</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody" class="divide-y divide-gray-100">
-          <!-- ข้อมูลจะถูกแสดงที่นี่ -->
-        </tbody>
-      </table>
+    <!-- Main Content Area - Dashboard Container -->
+    <div class="w-full max-w-screen-md mx-auto bg-white rounded-lg shadow-lg py-6 px-4 mt-8 mb-8 border border-gray-200">
+        <form id="bookingForm" class="space-y-6 pt-2" novalidate>
+            <input type="hidden" name="action" value="makeBooking">
+
+            <!-- Step 0: Initial Selection (Dashboard-like Service Cards) -->
+            <div id="step0" class="grid gap-5">
+                <div class="text-center font-semibold mb-4">
+                    <h2 class="text-3xl text-main">เลือกบริการ</h2>
+                    <p class="text-gray-500 text-sm">กรุณาเลือกประเภทคลินิกที่ต้องการจองคิว</p>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button type="button" onclick="selectOption(1)"
+                        class="flex flex-col items-center justify-center w-full sm:w-1/2 p-6 bg-blue-100 text-blue-800 rounded-2xl shadow-md hover:bg-blue-200 transition duration-300">
+                        <i class="fas fa-stethoscope fa-3x mb-3 text-blue-500"></i>
+                        <span class="text-xl font-bold">คลินิก(นอกเวลา)</span>
+                        <span class="text-md text-blue-600">วันปกติ</span>
+                    </button>
+                    <button type="button" onclick="selectOption(2)"
+                        class="flex flex-col items-center justify-center w-full sm:w-1/2 p-6 bg-pink-100 text-pink-800 rounded-2xl shadow-md hover:bg-pink-200 transition duration-300">
+                        <i class="fas fa-calendar-alt fa-3x mb-3 text-pink-500"></i>
+                        <span class="text-xl font-bold">คลินิก(นอกเวลา)</span>
+                        <span class="text-md text-pink-600">เสาร์-อาทิตย์</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 1: Booking Form (Enhanced with sections/cards) -->
+            <div id="step1" style="display:none;">
+                <div class="text-center font-semibold mb-6">
+                    <h2 class="text-3xl text-main">ข้อมูลการจอง</h2>
+                    <p class="text-gray-500 text-sm">กรุณากรอกข้อมูลส่วนตัวและเลือกบริการ</p>
+                </div>
+
+                <div class="bg-gray-50 p-6 rounded-2xl shadow-sm mb-6">
+                    <div class="flex items-center mb-4">
+                        <span class="flex items-center justify-center w-32 bg-main text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                            <i class="fas fa-user-md mr-2"></i>
+                            <span class="text-sm">บริการ</span>
+                        </span>
+                        <select id="service" name="service"
+                            class="flex-1 border border-gray-300 text-gray-900 rounded-r-2xl px-4 py-2 focus:ring-main focus:border-main"></select>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="flex items-center justify-center w-32 bg-main text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                            <i class="fas fa-hospital mr-2"></i>
+                            <span class="text-sm">สาขา</span>
+                        </span>
+                        <select id="locationservice" name="locationservice"
+                            class="flex-1 border border-gray-300 text-gray-900 rounded-r-2xl px-4 py-2 focus:ring-main focus:border-main"></select>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 p-6 rounded-2xl shadow-sm">
+                    <input type="hidden" id="displayName" name="displayName">
+                    <!-- Hidden field to store Line User ID as 'administrator' -->
+                    <input type="hidden" id="administratorId" name="administrator">
+                    <!-- The request specifies changing 'useridline' to 'administrator'.
+                         Assuming this field still stores the LINE User ID for tracking purposes,
+                         but the name sent to the backend is 'administrator'. -->
+
+                    <div class="loading-container">
+                        <div id="memberDataLoader"
+                            class="absolute top-0 left-0 w-full h-full bg-white bg-opacity-80 flex items-center justify-center rounded-2xl"
+                            style="display:none;">
+                            <div class="text-center text-main text-lg font-semibold">
+                                <i class="fas fa-spinner fa-spin mr-2"></i> กำลังค้นหาข้อมูล...
+                            </div>
+                        </div>
+                        <h3 class="text-main text-xl font-semibold mb-4">ข้อมูลผู้รับบริการ</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <span class="flex items-center justify-center w-32 bg-sub3 text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                                    <i class="fas fa-user mr-2"></i>
+                                    <span class="text-sm">ชื่อ สกุล</span>
+                                </span>
+                                <input type="text" id="name" name="name"
+                                    class="flex-1 p-2 border border-gray-300 rounded-r-2xl focus:ring-main focus:border-main"
+                                    required>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="flex items-center justify-center w-32 bg-sub3 text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                                    <i class="fas fa-phone mr-2"></i>
+                                    <span class="text-sm">เบอร์ติดต่อ</span>
+                                </span>
+                                <input type="tel" id="phonenumber" name="phonenumber"
+                                    class="flex-1 p-2 border border-gray-300 rounded-r-2xl focus:ring-main focus:border-main"
+                                    required>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="flex items-center justify-center w-32 bg-sub3 text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                                    <i class="fas fa-hand-holding-medical mr-2"></i>
+                                    <span class="text-sm">สิทธิการรักษา</span>
+                                </span>
+                                <input type="text" id="nickname" name="nickname"
+                                    class="flex-1 p-2 border border-gray-300 rounded-r-2xl focus:ring-main focus:border-main">
+                            </div>
+                            <div class="flex items-center">
+                                <span class="flex items-center justify-center w-32 bg-sub3 text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                                    <i class="fas fa-sticky-note mr-2"></i>
+                                    <span class="text-sm">หมายเหตุ</span>
+                                </span>
+                                <input type="text" id="note" name="note"
+                                    class="flex-1 p-2 border border-gray-300 rounded-r-2xl focus:ring-main focus:border-main">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="buttons" class="flex justify-between mt-6">
+                    <button type="button" onclick="prevStep0()"
+                        class="flex-1 mr-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-2xl shadow-md hover:bg-gray-300 transition duration-300">
+                        <i class="fas fa-arrow-left mr-2"></i> กลับ
+                    </button>
+                    <button type="button" onclick="nextStep()"
+                        class="flex-1 ml-2 px-6 py-3 bg-sub3 text-white rounded-2xl shadow-md hover:bg-pink-600 transition duration-300">
+                        ถัดไป <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Date and Time Selection (Calendar and Slots) -->
+            <div id="step2" style="display:none;">
+                <div class="text-center font-semibold mb-6">
+                    <h2 class="text-3xl text-main">เลือกวันและเวลา</h2>
+                    <p class="text-gray-500 text-sm">เลือกวันว่างในปฏิทินและเวลาที่ต้องการ</p>
+                </div>
+                <div class="flex justify-center space-x-2 mb-4">
+                    <select id="monthSelect" aria-label="Month"
+                        class="text-center bg-white text-black w-1/2 border-2 border-main rounded-2xl px-2 py-4 focus:ring-main focus:border-main">
+                        <option value="0">มกราคม</option>
+                        <option value="1">กุมภาพันธ์</option>
+                        <option value="2">มีนาคม</option>
+                        <option value="3">เมษายน</option>
+                        <option value="4">พฤษภาคม</option>
+                        <option value="5">มิถุนายน</option>
+                        <option value="6">กรกฎาคม</option>
+                        <option value="7">สิงหาคม</option>
+                        <option value="8">กันยายน</option>
+                        <option value="9">ตุลาคม</option>
+                        <option value="10">พฤศจิกายน</option>
+                        <option value="11">ธันวาคม</option>
+                    </select>
+                    <select id="yearSelect" aria-label="Year"
+                        class="text-center bg-white text-black w-1/2 border-2 border-main rounded-2xl px-2 py-4 focus:ring-main focus:border-main"></select>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div id="calendar" class="calendar-grid mb-6 p-4 bg-gray-50 rounded-lg shadow-md">
+                    <div class="day-header">อา.</div>
+                    <div class="day-header">จ.</div>
+                    <div class="day-header">อ.</div>
+                    <div class="day-header">พ.</div>
+                    <div class="day-header">พฤ.</div>
+                    <div class="day-header">ศ.</div>
+                    <div class="day-header">ส.</div>
+                </div>
+                <!-- End Calendar Grid -->
+
+                <div id="availability" class="max-w-sm mx-auto space-y-3 bg-white p-4 rounded-lg shadow-sm">
+                    <!-- Availability slots will be rendered here -->
+                </div>
+
+                <div class="hidden">
+                    <label for="time" class="block text-sm">Time:</label>
+                    <input type="time" id="time" name="time" required readonly
+                        class="w-full px-3 py-3 border border-blue-900 rounded-2xl">
+                </div>
+                <div class="hidden text-center">
+                    <input type="submit" value="Submit" class="px-6 py-4 bg-main text-black font-semibold rounded-2xl">
+                </div>
+                <button type="button" onclick="prevStep()"
+                    class="w-32 px-6 py-3 mt-6 bg-gray-200 text-gray-700 rounded-2xl shadow-md hover:bg-gray-300 transition duration-300">
+                    <i class="fas fa-arrow-left mr-2"></i> กลับ
+                </button>
+            </div>
+        </form>
     </div>
 
-    <!-- Pagination Controls -->
-    <div id="paginationControls" class="flex justify-center items-center mt-6 space-x-2">
-      <button id="prevPage"
-        class="py-2 px-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300">
-        <i class="fas fa-chevron-left"></i> ก่อนหน้า
-      </button>
-      <div id="pageNumbers" class="flex space-x-1">
-        <!-- Page numbers go here -->
-      </div>
-      <button id="nextPage"
-        class="py-2 px-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300">
-        ถัดไป <i class="fas fa-chevron-right"></i>
-      </button>
-    </div>
-
-  </main>
-
-  <!-- Loading Spinner -->
-  <div id="loadingSpinner" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="loader"></div>
-  </div>
-
-  <script>
-    const DETAILS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcruPk0O2BBYqgyLPEL_ant8_3QAMbVwX6cQbxZqFSg-6Jf6l4SpuQsvNChXINlgNvyQ/exec';
-
-    let allBookingsData = [];
-    let filteredBookingsData = [];
-    let currentPage = 1;
-    const itemsPerPage = 10;
-    let currentSortType = 'date-today-first';
-
-    // NEW: Function to parse DD-MM-YYYY to a Date object reliably
-    function parseDDMMYYYYToDateObject(dateString) {
-        if (!dateString) return new Date('Invalid Date');
-        const parts = dateString.split('-'); // e.g., ["06", "01", "2025"]
-        if (parts.length === 3) {
-            const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10); // Month is 1-based
-            const year = parseInt(parts[2], 10);
-            // Date constructor: new Date(year, monthIndex, day)
-            // monthIndex is 0-based, so subtract 1 from the month part
-            return new Date(year, month - 1, day);
-        }
-        return new Date('Invalid Date'); // Return an invalid date if format is not as expected
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-      const tableBody = document.getElementById('tableBody');
-      const loadingSpinner = document.getElementById('loadingSpinner');
-      const clearAllFiltersButton = document.getElementById('clearAllFiltersButton'); // NEW
-      const sortOrderSelect = document.getElementById('sortOrder');
-      const prevPageButton = document.getElementById('prevPage');
-      const nextPageButton = document.getElementById('nextPage');
-      const pageNumbersContainer = document.getElementById('pageNumbers');
-      const currentDateDisplay = document.getElementById('currentDateDisplay');
-      const statusFilterButtonsContainer = document.getElementById('statusFilterButtons');
-
-      // Filter input references for instant filtering
-      const filterNameInput = document.getElementById('filterName');
-      const filterServiceSelect = document.getElementById('filterService'); // NEW
-      const filterLocationSelect = document.getElementById('filterLocation'); // NEW
-      const filterPhoneNumberInput = document.getElementById('filterPhoneNumber');
-
-      function displayCurrentDate() {
-        const today = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        currentDateDisplay.textContent = `วันนี้: ${today.toLocaleDateString('th-TH', options)}`;
-      }
-      displayCurrentDate();
-
-
-      // --- Data Fetching and Initial Population ---
-
-      async function fetchAllBookings() {
-        showLoadingSpinner(true);
-        try {
-          const response = await fetch(`${DETAILS_SCRIPT_URL}?action=fetchBookings`);
-          const data = await response.json();
-          if (Array.isArray(data)) {
-            allBookingsData = data.map(detail => ({ ...detail, id: detail.idKey }));
-            populateFilterDropdowns(); // NEW: Populate service and location dropdowns
-            applyAllFiltersAndSort();
-          } else {
-            console.error('Expected array but got:', data);
-            Swal.fire('ข้อผิดพลาด!', 'รูปแบบข้อมูลการนัดหมายไม่ถูกต้อง', 'error');
-            allBookingsData = [];
-            applyAllFiltersAndSort();
-          }
-        } catch (error) {
-          console.error('Error fetching all bookings:', error);
-          Swal.fire('ข้อผิดพลาด!', 'ไม่สามารถดึงข้อมูลการนัดหมายได้', 'error');
-          allBookingsData = [];
-          applyAllFiltersAndSort();
-        } finally {
-          showLoadingSpinner(false);
-        }
-      }
-
-      // NEW: Function to populate Service and Location filter dropdowns
-      function populateFilterDropdowns() {
-        const services = new Set();
-        const locations = new Set();
-
-        allBookingsData.forEach(booking => {
-          if (booking.service) services.add(booking.service);
-          if (booking.locationservice) locations.add(booking.locationservice);
-        });
-
-        // Clear existing options except "ทั้งหมด"
-        filterServiceSelect.innerHTML = '<option value="">ทั้งหมด</option>';
-        filterLocationSelect.innerHTML = '<option value="">ทั้งหมด</option>';
-
-        // Add unique services
-        Array.from(services).sort().forEach(service => {
-          const option = document.createElement('option');
-          option.value = service;
-          option.textContent = service;
-          filterServiceSelect.appendChild(option);
-        });
-
-        // Add unique locations
-        Array.from(locations).sort().forEach(location => {
-          const option = document.createElement('option');
-          option.value = location;
-          option.textContent = location;
-          filterLocationSelect.appendChild(option);
-        });
-      }
-
-
-      fetchAllBookings();
-
-      // --- Filter, Sort, and Pagination Logic ---
-
-      function applyAllFiltersAndSort() {
-        let tempBookings = [...allBookingsData];
-
-        // Read values from all filter inputs/selects
-        const filterName = filterNameInput.value.toLowerCase();
-        const filterService = filterServiceSelect.value.toLowerCase(); // NEW
-        const filterLocation = filterLocationSelect.value.toLowerCase(); // NEW
-        const filterPhoneNumber = filterPhoneNumberInput.value.toLowerCase();
-        
-        const selectedStatusOptions = Array.from(statusFilterButtonsContainer.querySelectorAll('.status-filter-btn.active'))
-                                          .map(btn => btn.dataset.status.toLowerCase());
-        
-        tempBookings = tempBookings.filter(detail => {
-          const matchesName = !filterName || (detail.name && detail.name.toLowerCase().includes(filterName));
-          const matchesService = !filterService || (detail.service && detail.service.toLowerCase() === filterService); // EXACT match for dropdown
-          const matchesLocation = !filterLocation || (detail.locationservice && detail.locationservice.toLowerCase() === filterLocation); // EXACT match for dropdown
-          const matchesPhoneNumber = !filterPhoneNumber || (detail.phonenumber && detail.phonenumber.toLowerCase().includes(filterPhoneNumber));
-          
-          const matchesStatus = selectedStatusOptions.length === 0 || 
-                                (detail.status && selectedStatusOptions.includes(detail.status.toLowerCase()));
-          
-          return matchesName && matchesService && matchesLocation && matchesPhoneNumber && matchesStatus;
-        });
-
-        // Sorting using the corrected customDateSort
-        tempBookings.sort((a, b) => customDateSort(a, b, currentSortType));
-
-        filteredBookingsData = tempBookings;
-        currentPage = 1;
-        displayTable(filteredBookingsData);
-        renderPaginationControls();
-      }
-
-      // MODIFIED: customDateSort function for reliable date parsing and sorting logic
-      function customDateSort(a, b, sortType) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // Use the new parsing function for reliable date conversion
-        const dateA = parseDDMMYYYYToDateObject(a.date);
-        const dateB = parseDDMMYYYYToDateObject(b.date);
-
-        // Handle invalid dates: push invalid dates to the end
-        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-        if (isNaN(dateA.getTime())) return 1; 
-        if (isNaN(dateB.getTime())) return -1;
-
-        // Normalize dates to start of day for comparison
-        dateA.setHours(0, 0, 0, 0);
-        dateB.setHours(0, 0, 0, 0);
-
-        if (sortType === 'date-today-first') {
-            const isAToday = dateA.getTime() === today.getTime();
-            const isBToday = dateB.getTime() === today.getTime();
-            const isAFuture = dateA.getTime() > today.getTime();
-            const isBFuture = dateB.getTime() > today.getTime();
-
-            let valA = 0; // Category for Past dates
-            let valB = 0; // Category for Past dates
-
-            if (isAToday) valA = 2; // Category for Today's dates
-            else if (isAFuture) valA = 1; // Category for Future dates
-
-            if (isBToday) valB = 2; // Category for Today's dates
-            else if (isBFuture) valB = 1; // Category for Future dates
-
-            // First, sort by category (Today > Future > Past)
-            if (valA !== valB) {
-              return valB - valA; // Descending order of category value (2, 1, 0)
-            }
-            // If they are in the same category, then sort within that category
-            if (valA === 2 || valA === 1) { // Both are Today OR both are Future
-                return dateA.getTime() - dateB.getTime(); // Sort oldest/soonest first
-            } else { // Both are Past (valA === 0)
-                return dateB.getTime() - dateA.getTime(); // Sort newest first (closest to today)
-            }
-        } else if (sortType === 'date-asc') {
-            return dateA.getTime() - dateB.getTime(); // Sort oldest to newest
-        } else if (sortType === 'date-desc') {
-            return dateB.getTime() - dateA.getTime(); // Sort newest to oldest
-        }
-        return 0; // Default: no change
-      }
-
-
-      function displayTable(dataToDisplay) {
-        tableBody.innerHTML = '';
-
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = Math.min(startIndex + itemsPerPage, dataToDisplay.length);
-        const paginatedData = dataToDisplay.slice(startIndex, endIndex);
-
-        if (paginatedData.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-gray-500">ไม่พบข้อมูลการนัดหมายที่ตรงกับเงื่อนไข</td></tr>`;
-          return;
-        }
-
-        paginatedData.forEach(detail => {
-          let disableConfirm = false;
-          let disableComplete = false;
-          let disableCancel = false;
-          let disableReminder = false;
-
-          // Use the reliable parsing function here too for accurate date comparison
-          const bookingDate = parseDDMMYYYYToDateObject(detail.date);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const isPastDate = isNaN(bookingDate.getTime()) || bookingDate.getTime() < today.getTime();
-
-          switch (detail.status) {
-            case 'รอการยืนยัน':
-              disableComplete = true;
-              break;
-            case 'ยืนยันแล้ว':
-              disableConfirm = true;
-              if (isPastDate) {
-                disableReminder = true;
-                // Optionally disable complete if it's already a past date and not completed
-                // disableComplete = true; // Uncomment if you want to prevent completing old 'confirmed' bookings
-              }
-              break;
-            case 'ยกเลิก':
-              disableCancel = true;
-              disableConfirm = true;
-              disableComplete = true;
-              disableReminder = true;
-              break;
-            case 'เสร็จสิ้น':
-              disableConfirm = true;
-              disableCancel = true;
-              disableComplete = true;
-              disableReminder = true;
-              break;
-          }
-
-          const row = document.createElement('tr');
-          row.className = 'border-b border-gray-100 hover:bg-gray-50';
-          row.innerHTML = `
-            <td class="hidden px-4 py-2">${detail.userlineid || ''}</td>
-            <td class="px-4 py-2">${detail.name || ''}</td>
-            <td class="px-4 py-2">${detail.service || ''}</td>
-            <td class="px-4 py-2">${detail.locationservice || ''}</td>
-            <td class="px-4 py-2">${detail.phonenumber || ''}</td>
-            <td class="px-4 py-2">${detail.note || ''}</td>
-            <td class="px-4 py-2">${detail.date || ''}</td>
-            <td class="px-4 py-2">${detail.time || ''}</td>
-            <td class="px-4 py-2">
-              <span class="px-2 py-1 rounded-full text-xs font-semibold
-                ${detail.status === 'ยืนยันแล้ว' ? 'bg-green-100 text-green-800' : ''}
-                ${detail.status === 'รอการยืนยัน' ? 'bg-yellow-100 text-yellow-800' : ''}
-                ${detail.status === 'ยกเลิก' ? 'bg-red-100 text-red-800' : ''}
-                ${detail.status === 'เสร็จสิ้น' ? 'bg-blue-100 text-blue-800' : ''}
-              ">${detail.status || ''}</span>
-            </td>
-            <td class="px-4 py-2 flex flex-wrap gap-2">
-              <button class="confirm-btn bg-green-600 text-white px-3 py-1 text-xs rounded-lg hover:bg-green-700 ${disableConfirm ? 'opacity-50 cursor-not-allowed' : ''}" ${disableConfirm ? 'disabled' : ''} data-id="${detail.idKey}">ยืนยัน</button>
-              <button class="cancel-btn bg-red-600 text-white px-3 py-1 text-xs rounded-lg hover:bg-red-700 ${disableCancel ? 'opacity-50 cursor-not-allowed' : ''}" ${disableCancel ? 'disabled' : ''} data-id="${detail.idKey}">ยกเลิก</button>
-              <button class="complete-btn bg-blue-600 text-white px-3 py-1 text-xs rounded-lg hover:bg-blue-700 ${disableComplete ? 'opacity-50 cursor-not-allowed' : ''}" ${disableComplete ? 'disabled' : ''} data-id="${detail.idKey}">เสร็จสิ้น</button>
-              <button class="reminder-btn bg-yellow-600 text-white px-3 py-1 text-xs rounded-lg hover:bg-yellow-700 ${disableReminder ? 'opacity-50 cursor-not-allowed' : ''}" ${disableReminder ? 'disabled' : ''} data-id="${detail.idKey}">แจ้งเตือน</button>
-            </td>
-          `;
-          tableBody.appendChild(row);
-        });
-
-        attachEventListeners();
-      }
-
-      function renderPaginationControls() {
-        pageNumbersContainer.innerHTML = '';
-        const totalPages = Math.ceil(filteredBookingsData.length / itemsPerPage);
-
-        prevPageButton.disabled = currentPage === 1;
-        nextPageButton.disabled = currentPage === totalPages || totalPages === 0;
-
-        if (totalPages <= 1) {
-          prevPageButton.classList.add('hidden');
-          nextPageButton.classList.add('hidden');
-          pageNumbersContainer.classList.add('hidden');
-          return;
-        } else {
-          prevPageButton.classList.remove('hidden');
-          nextPageButton.classList.remove('hidden');
-          pageNumbersContainer.classList.remove('hidden');
-        }
-
-        const maxPagesToShow = 4;
-
-        let startPage = Math.max(1, currentPage - Math.floor((maxPagesToShow -1) / 2));
-        let endPage = startPage + maxPagesToShow - 1;
-
-        if (endPage > totalPages) {
-            endPage = totalPages;
-            startPage = Math.max(1, totalPages - maxPagesToShow + 1);
-        }
-
-        if (startPage > 1) {
-            addPageButton(1);
-            if (startPage > 2) {
-                addEllipsis();
-            }
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            addPageButton(i);
-        }
-
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                addEllipsis();
-            }
-            addPageButton(totalPages);
-        }
-      }
-
-      function addPageButton(pageNumber) {
-        const pageButton = document.createElement('button');
-        pageButton.textContent = pageNumber;
-        pageButton.className = `py-2 px-4 rounded-lg text-sm font-medium transition duration-300 ${currentPage === pageNumber ? 'bg-primary-green text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
-        pageButton.addEventListener('click', () => {
-          currentPage = pageNumber;
-          displayTable(filteredBookingsData);
-          renderPaginationControls();
-        });
-        pageNumbersContainer.appendChild(pageButton);
-      }
-
-      function addEllipsis() {
-        const span = document.createElement('span');
-        span.textContent = '...';
-        span.className = 'py-2 px-4 text-gray-500';
-        pageNumbersContainer.appendChild(span);
-      }
-
-
-      // --- Event Listeners for Instant Filtering ---
-
-      // Text Inputs
-      filterNameInput.addEventListener('input', applyAllFiltersAndSort);
-      filterPhoneNumberInput.addEventListener('input', applyAllFiltersAndSort);
-
-      // Dropdowns
-      filterServiceSelect.addEventListener('change', applyAllFiltersAndSort); // NEW
-      filterLocationSelect.addEventListener('change', applyAllFiltersAndSort); // NEW
-      sortOrderSelect.addEventListener('change', () => {
-          currentSortType = sortOrderSelect.value;
-          applyAllFiltersAndSort();
-      });
-
-      // Status Filter Buttons (click handler is already defined)
-      statusFilterButtonsContainer.addEventListener('click', (event) => {
-          const clickedButton = event.target.closest('.status-filter-btn');
-          if (clickedButton) {
-              clickedButton.classList.toggle('active');
-              applyAllFiltersAndSort();
-          }
-      });
-
-      // NEW: Clear All Filters Button
-      clearAllFiltersButton.addEventListener('click', () => {
-        // Clear text inputs
-        filterNameInput.value = '';
-        filterPhoneNumberInput.value = '';
-        
-        // Reset dropdowns to "ทั้งหมด"
-        filterServiceSelect.value = '';
-        filterLocationSelect.value = '';
-        sortOrderSelect.value = 'date-today-first'; // Reset sort order to default
-        currentSortType = 'date-today-first'; 
-
-        // Deselect all status filter buttons
-        document.querySelectorAll('.status-filter-btn').forEach(button => {
-            button.classList.remove('active');
-        });
-
-        applyAllFiltersAndSort(); // Re-apply all filters
-      });
-
-
-      // Pagination Buttons (existing logic)
-      prevPageButton.addEventListener('click', () => {
-        if (currentPage > 1) {
-          currentPage--;
-          displayTable(filteredBookingsData);
-          renderPaginationControls();
-        }
-      });
-
-      nextPageButton.addEventListener('click', () => {
-        const totalPages = Math.ceil(filteredBookingsData.length / itemsPerPage);
-        if (currentPage < totalPages) {
-          currentPage++;
-          displayTable(filteredBookingsData);
-          renderPaginationControls();
-        }
-      });
-
-      // --- Action Button Functions (Confirm, Cancel, Complete, Reminder) ---
-      function attachEventListeners() {
-        document.querySelectorAll('.confirm-btn').forEach(button => {
-          button.onclick = null;
-          button.addEventListener('click', function () {
-            const id = this.dataset.id;
-            confirmBooking(id);
-          });
-        });
-
-        document.querySelectorAll('.cancel-btn').forEach(button => {
-          button.onclick = null;
-          button.addEventListener('click', function () {
-            const id = this.dataset.id;
-            cancelBooking(id);
-          });
-        });
-
-        document.querySelectorAll('.complete-btn').forEach(button => {
-          button.onclick = null;
-          button.addEventListener('click', function () {
-            const id = this.dataset.id;
-            completeBooking(id);
-          });
-        });
-
-        document.querySelectorAll('.reminder-btn').forEach(button => {
-          button.onclick = null;
-          button.addEventListener('click', function () {
-            const id = this.dataset.id;
-            sendReminder(id);
-          });
-        });
-      }
-
-      async function confirmBooking(id) {
-        Swal.fire({
-          title: 'คุณแน่ใจหรือไม่?',
-          text: "คุณต้องการยืนยันการนัดหมายนี้หรือไม่!",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'ใช่, ยืนยันเลย!',
-          cancelButtonText: 'ยกเลิก'
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            showLoadingSpinner(true);
+    <script>
+        const globalLoadingOverlay = document.getElementById('globalLoadingOverlay');
+        let WEB_APP_URL = '';
+        const WEB_APP_URL_1 = 'https://script.google.com/macros/s/AKfycbzcruPk0O2BBYqgyLPEL_ant8_3QAMbVwX6cQbxZqFSg-6Jf6l4SpuQsvNChXINlgNvyQ/exec';
+        const WEB_APP_URL_2 = 'https://script.google.com/macros/s/AKfycbyugQX48PKvvZ76A9JOLabmNl3yNuMM2lmuvvhQnNfw6w9lEWy2GuCgpS2cxoyBqyOdyA/exec';
+
+        const WEB_APP_MEMBER_URL = 'https://script.google.com/macros/s/AKfycbw9CV9X8Uj84JXhGUJ8JEMdlIXp2vvwHhWCe_sBtYtbPzivdsRzj7E4uSuERcqmBFON/exec';
+        const LIFF_ID = '2006332258-AOqXqOdb';
+
+        let isLiffInitialized = true;
+        let liffProfile = null;
+        let selectedServiceType = '';
+
+        // Define static closed dates directly in the frontend
+        // This is a client-side hardcoded list. If you want this to come from backend,
+        // you'd need a separate Apps Script endpoint for it (or fix getDailyStatusSummary).
+        const STATIC_CLOSED_DATES = {
+            'normal': [ // For WEB_APP_URL_1 (normal clinic)
+                // '2024-07-28', // Example: July 28, 2024
+                // Add more dates here in 'YYYY-MM-DD' format
+            ],
+            'weekend': [ // For WEB_APP_URL_2 (weekend clinic)
+                // '2024-08-15', // Example: Aug 15, 2024
+            ]
+        };
+
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            showLoading(true);
             try {
-              const response = await fetch(`${DETAILS_SCRIPT_URL}?action=confirmBooking&id=${encodeURIComponent(id)}`, { method: 'POST' });
-              const data = await response.text();
-              if (data.includes("success")) {
-                Swal.fire('ยืนยันแล้ว!', 'การจองได้รับการยืนยันแล้ว.', 'success');
-                await fetchAllBookings();
-              } else {
-                Swal.fire('ข้อผิดพลาด!', `เกิดข้อผิดพลาดในการยืนยัน: ${data}`, 'error');
-              }
+                if (typeof liff !== 'undefined' && typeof liff.init === 'function') {
+                    await liff.init({ liffId: LIFF_ID });
+                    isLiffInitialized = true;
+                    if (liff.isLoggedIn()) {
+                        liffProfile = await liff.getProfile();
+                        // Changed 'userlineid' to 'administratorId' as per request
+                        document.getElementById('administratorId').value = liffProfile.userId;
+                        document.getElementById('displayName').value = liffProfile.displayName;
+                        await fetchData(liffProfile.userId);
+                    } else {
+                        console.log('LIFF not logged in, or not in LIFF environment. Proceeding with manual input.');
+                    }
+                } else {
+                    console.warn('LIFF SDK not available or not in LIFF environment. Proceeding without LIFF features.');
+                    isLiffInitialized = false;
+                }
             } catch (error) {
-              console.error('Error confirming booking:', error);
-              Swal.fire('ข้อผิดพลาด!', 'เกิดข้อผิดพลาดในการยืนยันการนัดหมาย.', 'error');
+                console.warn('LIFF initialization failed. Proceeding without LIFF features.', error);
+                isLiffInitialized = false;
             } finally {
-              showLoadingSpinner(false);
+                showLoading(false);
             }
-          }
         });
-      }
 
-      async function cancelBooking(id) {
-        Swal.fire({
-          title: 'คุณแน่ใจหรือไม่?',
-          text: "คุณต้องการยกเลิกการนัดหมายนี้หรือไม่!",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'ใช่, ยกเลิกเลย!',
-          cancelButtonText: 'ยกเลิก'
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            showLoadingSpinner(true);
-            try {
-              const response = await fetch(`${DETAILS_SCRIPT_URL}?action=cancelBooking&id=${encodeURIComponent(id)}`, { method: 'POST' });
-              const data = await response.text();
-              if (data.includes("success")) {
-                Swal.fire('ยกเลิกแล้ว!', 'การนัดหมายถูกยกเลิกแล้ว.', 'success');
-                await fetchAllBookings();
-              } else {
-                Swal.fire('ข้อผิดพลาด!', `เกิดข้อผิดพลาดในการยกเลิก: ${data}`, 'error');
-              }
-            } catch (error) {
-              console.error('Error canceling booking:', error);
-              Swal.fire('ข้อผิดพลาด!', 'เกิดข้อผิดพลาดในการยกเลิกการนัดหมาย.', 'error');
-            } finally {
-              showLoadingSpinner(false);
+        async function selectOption(option) {
+            if (option === 1) {
+                WEB_APP_URL = WEB_APP_URL_1;
+                selectedServiceType = 'normal';
+            } else if (option === 2) {
+                WEB_APP_URL = WEB_APP_URL_2;
+                selectedServiceType = 'weekend';
             }
-          }
-        });
-      }
 
-      async function completeBooking(id) {
-        Swal.fire({
-          title: 'คุณแน่ใจหรือไม่?',
-          text: "คุณต้องการ เสร็จสิ้น การนัดหมายนี้หรือไม่!",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'ใช่, การนัดหมายเสร็จสิ้น!',
-          cancelButtonText: 'ยกเลิก'
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            showLoadingSpinner(true);
-            try {
-              const response = await fetch(`${DETAILS_SCRIPT_URL}?action=completeBooking&id=${encodeURIComponent(id)}`, { method: 'POST' });
-              const data = await response.text();
-              if (data.includes("success")) {
-                Swal.fire('ยืนยันแล้ว!', 'การนัดหมายได้เสร็จสิ้นแล้ว.', 'success');
-                await fetchAllBookings();
-              } else {
-                Swal.fire('ข้อผิดพลาด!', `เกิดข้อผิดพลาดในการเสร็จสิ้น: ${data}`, 'error');
-              }
-            } catch (error) {
-              console.error('Error completing booking:', error);
-              Swal.fire('ข้อผิดพลาด!', 'เกิดข้อผิดพลาดในการ การนัดหมายเสร็จสิ้น .', 'error');
-            } finally {
-              showLoadingSpinner(false);
-            }
-          }
-        });
-      }
+            document.getElementById('step0').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
 
-      async function sendReminder(id) {
-        Swal.fire({
-          title: 'ส่งการเตือนความจำ?',
-          text: "การเตือนความจำจะถูกส่งไปยังผู้ใช้.",
-          icon: 'info',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'ใช่, ส่งเลย!',
-          cancelButtonText: 'ยกเลิก'
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            showLoadingSpinner(true);
-            try {
-              const response = await fetch(`${DETAILS_SCRIPT_URL}?action=sendReminder&id=${encodeURIComponent(id)}`, { method: 'POST' });
-              const data = await response.text();
-              if (data.includes("success")) {
-                Swal.fire('ส่งการเตือนสำเร็จ!', 'การเตือนความจำถูกส่งเรียบร้อยแล้ว.', 'success');
-              } else {
-                Swal.fire('ข้อผิดพลาด!', `เกิดข้อผิดพลาดในการส่งการเตือนความจำ: ${data}`, 'error');
-              }
-            } catch (error) {
-              console.error('Error sending reminder:', error);
-              Swal.fire('ข้อผิดพลาด!', 'เกิดข้อผิดพลาดในการส่งการเตือนความจำ.', 'error');
-            } finally {
-              showLoadingSpinner(false);
-            }
-          }
-        });
-      }
+            showLoading(true);
+            await fetchDropdownData();
 
-      function showLoadingSpinner(show) {
-        if (show) {
-          loadingSpinner.classList.remove('hidden');
-        } else {
-          loadingSpinner.classList.add('hidden');
+            const currentDate = new Date();
+            populateYearSelect(currentDate.getFullYear());
+            monthSelect.value = currentDate.getMonth();
+            yearSelect.value = currentDate.getFullYear();
+            await updateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+            showLoading(false);
         }
-      }
-    });
-  </script>
 
+        async function fetchData(userId) {
+            const memberDataLoader = document.getElementById('memberDataLoader');
+            memberDataLoader.style.display = 'flex';
+            try {
+                const response = await fetch(WEB_APP_MEMBER_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'fetchData', userId: userId })
+                });
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    const row = data.find(r => r[1] === userId);
+                    if (row) {
+                        displayData(row);
+                    } else {
+                        console.log('No member data found for userId:', userId);
+                    }
+                } else {
+                    console.log('No member data returned or empty array.');
+                }
+            } catch (error) {
+                console.error('Error fetching member data:', error);
+            } finally {
+                memberDataLoader.style.display = 'none';
+            }
+        }
+
+        function displayData(row) {
+            // Changed 'userlineid' to 'administratorId'
+            document.getElementById('administratorId').value = row[1] || '';
+            document.getElementById('name').value = row[2] || '';
+            document.getElementById('phonenumber').value = row[3] || '';
+            document.getElementById('nickname').value = row[4] || '';
+        }
+
+        function showLoading(isLoading) {
+            globalLoadingOverlay.style.display = isLoading ? 'flex' : 'none';
+        }
+
+        let currentStep = 1;
+        let selectedDate = '';
+        let isSubmitting = false;
+
+        function nextStep() {
+            if (currentStep === 1) {
+                const name = document.getElementById('name').value.trim();
+                const phonenumber = document.getElementById('phonenumber').value.trim();
+
+                if (name === '' || phonenumber === '') {
+                    alert('กรุณากรอกชื่อและเบอร์โทรก่อนดำเนินการต่อ');
+                    return;
+                }
+            }
+
+            if (currentStep < 2) {
+                document.getElementById(`step${currentStep}`).style.display = 'none';
+                currentStep++;
+                document.getElementById(`step${currentStep}`).style.display = 'block';
+            }
+        }
+
+        function prevStep0() {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step0').style.display = 'grid';
+            currentStep = 0;
+            // Clear any previously selected options or data specific to the service type
+            WEB_APP_URL = '';
+            selectedServiceType = '';
+            // You might want to reset other form fields here if returning to step 0 means a full reset
+            form.reset();
+            availabilityDiv.innerHTML = '';
+            calendarDiv.querySelectorAll('.calendar-day').forEach(el => el.remove());
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                document.getElementById(`step${currentStep}`).style.display = 'none';
+                currentStep--;
+                document.getElementById(`step${currentStep}`).style.display = 'block';
+            }
+        }
+
+        async function fetchDropdownData() {
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=fetchServicesAndlocationservice`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                populateDropdown('service', data.services);
+                populateDropdown('locationservice', data.locationservice);
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+                showPopup('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดตัวเลือกบริการได้ โปรดลองใหม่อีกครั้ง', 'error');
+            }
+        }
+
+        function populateDropdown(dropdownId, items) {
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.innerHTML = '';
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
+                dropdown.appendChild(option);
+            });
+        }
+
+        const form = document.getElementById('bookingForm');
+        const monthSelect = document.getElementById('monthSelect');
+        const yearSelect = document.getElementById('yearSelect');
+        const calendarDiv = document.getElementById('calendar');
+        const availabilityDiv = document.getElementById('availability');
+        const timeInput = document.getElementById('time');
+
+        monthSelect.addEventListener('change', () => updateCalendar(parseInt(yearSelect.value), parseInt(monthSelect.value)));
+        yearSelect.addEventListener('change', () => updateCalendar(parseInt(yearSelect.value), parseInt(monthSelect.value)));
+
+        const daysOfWeekNames = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+
+        function populateYearSelect(currentYear) {
+            yearSelect.innerHTML = '';
+            for (let i = currentYear; i <= currentYear + 3; i++) { // Show current year + 3 next years
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i + 543; // Convert to B.E.
+                yearSelect.appendChild(option);
+            }
+        }
+
+
+        // --- NEW: Function to check availability for a given date string ---
+        // This is essentially moving the logic from Apps Script's getDailyStatusSummary
+        // to the frontend, but calling the existing checkAvailability endpoint.
+        async function getDailyStatusFromTimeSlots(dateStr) {
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=checkAvailability&date=${dateStr}`);
+                if (!response.ok) {
+                    // console.warn(`Failed to fetch time slots for ${dateStr}. Assuming Closed.`);
+                    return 'Closed'; // If cannot fetch, assume it's closed
+                }
+                const timeSlots = await response.json(); // This is the actual time slot availability
+
+                let totalSlots = 0;
+                let availableSlots = 0;
+                for (const time in timeSlots) {
+                    totalSlots++;
+                    if (timeSlots[time].status === 'Available') {
+                        availableSlots++;
+                    }
+                }
+
+                if (totalSlots === 0) {
+                    return 'Closed'; // No time slots defined for this day
+                } else if (availableSlots === 0) {
+                    return 'Full'; // All defined time slots are booked
+                } else {
+                    return 'Available'; // Has available slots
+                }
+
+            } catch (error) {
+                console.error(`Error checking time slots for ${dateStr}:`, error);
+                return 'Closed'; // On any error, treat as closed
+            }
+        }
+
+
+        async function updateCalendar(year, month) {
+            showLoading(true);
+            try {
+                // Clear existing days but keep headers
+                const existingDays = calendarDiv.querySelectorAll('.calendar-day, .other-month, .day-expired, .day-closed, .day-full, .day-available, .selected, .today');
+                existingDays.forEach(el => el.remove());
+
+                const today = new Date();
+                const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+                const firstDayOfMonth = new Date(year, month, 1);
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const firstDayOfWeek = firstDayOfMonth.getDay();
+
+                let initialDateSelected = false;
+                let firstAvailableDateElement = null;
+
+                // Add blank cells for days before the 1st of the month
+                for (let i = 0; i < firstDayOfWeek; i++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.classList.add('calendar-day', 'other-month');
+                    dayElement.innerHTML = `<span class="day-number"></span><span class="day-status"></span>`;
+                    calendarDiv.appendChild(dayElement);
+                }
+
+                // Collect all promises for fetching daily statuses in parallel
+                const dailyStatusPromises = [];
+                const daysToProcess = [];
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+                    daysToProcess.push({ date, dateStr, day });
+                    dailyStatusPromises.push(getDailyStatusFromTimeSlots(dateStr));
+                }
+
+                // Wait for all daily statuses to be fetched
+                const allDailyStatuses = await Promise.all(dailyStatusPromises);
+                const dailyStatusMap = {};
+                daysToProcess.forEach((item, index) => {
+                    dailyStatusMap[item.dateStr] = allDailyStatuses[index];
+                });
+
+
+                for (let i = 0; i < daysToProcess.length; i++) {
+                    const { date, dateStr, day } = daysToProcess[i];
+                    const dayElement = document.createElement('div');
+                    dayElement.classList.add('calendar-day');
+
+                    if (date.toDateString() === today.toDateString()) {
+                        dayElement.classList.add('today');
+                    }
+
+                    let status = dailyStatusMap[dateStr];
+                    let statusText = '';
+                    let clickable = true;
+
+                    // Client-side override for static closed dates (holidays, etc.)
+                    const currentServiceClosedDates = STATIC_CLOSED_DATES[selectedServiceType] || [];
+                    if (currentServiceClosedDates.includes(dateStr)) {
+                        status = 'Closed'; // Override based on static data
+                    }
+
+                    // Apply styles and status text based on priority
+                    if (date < startOfToday) { // Past dates
+                        dayElement.classList.add('day-expired');
+                        statusText = '';
+                        clickable = false;
+                    } else if (currentServiceClosedDates.includes(dateStr)) { // Static closed dates/holidays
+                        dayElement.classList.add('day-closed');
+                        statusText = 'ปิด'; // Or "หยุด"
+                        clickable = false;
+                    } else if (status === 'Full') { // Fully booked
+                        dayElement.classList.add('day-full');
+                        statusText = 'เต็ม';
+                        clickable = false;
+                    } else if (status === 'Closed') { // No slots or dynamically closed
+                        dayElement.classList.add('day-closed');
+                        statusText = 'ปิด'; // Or "หยุด"
+                        clickable = false;
+                    } else { // Available
+                        dayElement.classList.add('day-available');
+                        statusText = 'ว่าง';
+                    }
+
+                    dayElement.innerHTML = `
+                        <span class="day-number">${day}</span>
+                        <span class="day-status">${statusText}</span>
+                    `;
+
+                    if (clickable) {
+                        dayElement.addEventListener('click', () => {
+                            document.querySelectorAll('.calendar-day').forEach(el => el.classList.remove('selected'));
+                            dayElement.classList.add('selected');
+                            selectDate(year, month, day);
+                        });
+                        // Auto-select the first available date (today or future)
+                        if (status === 'Available' && !initialDateSelected) {
+                            if (date.toDateString() === today.toDateString()) {
+                                dayElement.classList.add('selected');
+                                selectDate(year, month, day);
+                                initialDateSelected = true;
+                            } else if (!firstAvailableDateElement && date >= startOfToday) {
+                                firstAvailableDateElement = { year, month, day, element: dayElement };
+                            }
+                        }
+                    } else {
+                        dayElement.style.cursor = 'not-allowed';
+                    }
+                    calendarDiv.appendChild(dayElement);
+                }
+
+                // If today is not available or past, select the first available future date
+                if (!initialDateSelected && firstAvailableDateElement) {
+                    firstAvailableDateElement.element.classList.add('selected');
+                    selectDate(firstAvailableDateElement.year, firstAvailableDateElement.month, firstAvailableDateElement.day);
+                    initialDateSelected = true;
+                } else if (!initialDateSelected) {
+                    // No available dates in the current month
+                    availabilityDiv.innerHTML = '<div class="text-center text-red-500 py-4">ไม่มีช่วงเวลาที่ว่างสำหรับเดือนนี้</div>';
+                    selectedDate = ''; // Clear selected date if no availability
+                    timeInput.value = ''; // Clear selected time
+                }
+
+
+                // Add blank cells for days after the last day of the month
+                const lastDayOfMonth = new Date(year, month, daysInMonth);
+                const lastDayOfWeek = lastDayOfMonth.getDay();
+                for (let i = 1; i <= (6 - lastDayOfWeek); i++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.classList.add('calendar-day', 'other-month');
+                    dayElement.innerHTML = `<span class="day-number"></span><span class="day-status"></span>`;
+                    calendarDiv.appendChild(dayElement);
+                }
+            } catch (error) {
+                console.error('Failed to update calendar:', error);
+                showPopup('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดปฏิทินได้ โปรดลองใหม่อีกครั้ง', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function selectDate(year, month, day) {
+            selectedDate = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            showLoading(true);
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=checkAvailability&date=${selectedDate}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const availability = await response.json();
+                updateAvailability(availability);
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+                showPopup('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลช่วงเวลาได้ โปรดลองใหม่อีกครั้ง', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+
+        function updateAvailability(availability) {
+            availabilityDiv.innerHTML = '';
+            if (Object.keys(availability).length === 0) {
+                availabilityDiv.innerHTML = '<div class="text-center text-red-500 py-4">ไม่มีช่วงเวลาที่ว่างสำหรับวันนี้</div>';
+                return;
+            }
+
+            for (const [time, info] of Object.entries(availability)) {
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'flex flex-col sm:flex-row justify-between items-center py-3 px-4 bg-white rounded-lg shadow-md mb-2';
+
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'font-semibold text-main text-lg mb-2 sm:mb-0';
+                timeSpan.textContent = `${time} น.`;
+
+                const statusAndBookContainer = document.createElement('div');
+                statusAndBookContainer.className = 'flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto';
+
+                const statusButton = document.createElement('button');
+                statusButton.className = `px-4 py-2 rounded-xl text-sm font-medium ${info.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} pointer-events-none`;
+                statusButton.textContent = info.status === 'Available' ? `ว่าง (${info.remaining}/${info.total})` : `เต็ม (${info.remaining}/${info.total})`;
+                statusButton.disabled = true;
+
+                const bookButton = document.createElement('button');
+                bookButton.className = `px-5 py-2 rounded-xl font-semibold text-white transition duration-300 ${info.status === 'Available' ? 'bg-sub3 hover:bg-pink-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`;
+                bookButton.innerHTML = `<i class="fas fa-calendar-check mr-2"></i> จองคิว`;
+                bookButton.disabled = info.status !== 'Available';
+                bookButton.addEventListener('click', () => {
+                    timeInput.value = time.padStart(5, '0');
+                    // Separate selectedDate "yyyy-mm-dd" and convert to "dd-mm-yyyy"
+                    const [year, month, day] = selectedDate.split('-');
+                    const displayDate = `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${parseInt(year) + 543}`; // Convert to B.E.
+
+                    showPopup(
+                        '<p class="text-main font-bold text-2xl mb-2"><i class="fas fa-check-circle mr-2"></i> ยืนยันการนัดหมาย</p>',
+                        `
+                        <div class="space-y-2 text-gray-700">
+                            <p><span class="font-semibold">บริการ:</span> ${form.service.value}</p>
+                            <p><span class="font-semibold">สาขา:</span> ${form.locationservice.value}</p>
+                            <p><span class="font-semibold">ชื่อ:</span> ${form.name.value}</p>  
+                            <p><span class="font-semibold">เบอร์ติดต่อ:</span> ${form.phonenumber.value}</p>              
+                            <p><span class="font-semibold">สิทธิการรักษา:</span> ${form.nickname.value || '-'}</p>
+                            <p><span class="font-semibold">หมายเหตุ:</span> ${form.note.value || '-'}</p>
+                            <p class="text-lg text-blue-700 mt-4"><span class="font-bold">วันที่:</span> ${displayDate}</p>
+                            <p class="text-lg text-blue-700"><span class="font-bold">เวลา:</span> ${timeInput.value} น.</p>
+                        </div>
+                    `, 'confirm');
+                });
+
+                statusAndBookContainer.appendChild(statusButton);
+                statusAndBookContainer.appendChild(bookButton);
+                slotDiv.appendChild(timeSpan);
+                slotDiv.appendChild(statusAndBookContainer);
+                availabilityDiv.appendChild(slotDiv);
+            }
+        }
+
+        function hidePopup() {
+            document.getElementById('popup').style.display = 'none';
+        }
+
+        async function submitBooking() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+            showLoading(true);
+            try {
+                const formData = new FormData(form);
+                formData.append('date', selectedDate);
+
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                hidePopup();
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+
+                const result = await response.text();
+                console.log("Booking submission result:", result);
+
+                showPopup(
+                    '<p class="text-main font-bold text-2xl mb-2"><i class="fas fa-check-circle mr-2"></i> สำเร็จ!</p>',
+                    '<p class="text-gray-700">การนัดหมายเสร็จสมบูรณ์</p>',
+                    'success'
+                );
+
+                if (isLiffInitialized && typeof liff.isLoggedIn === 'function' && liff.isLoggedIn()) {
+                    if (typeof liff.closeWindow === 'function') {
+                        // liff.closeWindow(); // Consider if you want to close LIFF automatically
+                    }
+                }
+
+            } catch (error) {
+                console.error('There was a problem with the booking operation:', error);
+                showPopup(
+                    '<p class="text-red-600 font-bold text-2xl mb-2"><i class="fas fa-exclamation-triangle mr-2"></i> เกิดข้อผิดพลาด</p>',
+                    `<p class="text-gray-700">ไม่สามารถส่งข้อมูลได้: ${error.message || 'โปรดลองใหม่อีกครั้ง'}</p>`,
+                    'error'
+                );
+            } finally {
+                showLoading(false);
+                isSubmitting = false;
+            }
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!selectedDate || !timeInput.value) {
+                showPopup('เกิดข้อผิดพลาด', 'กรุณาเลือกวันที่และเวลา', 'error');
+                return;
+            }
+            // Logic to show confirmation popup is now handled within selectDate and its call to showPopup
+            // The form submit listener itself primarily prevents default behavior now.
+        });
+
+
+        function showPopup(title, content, type) {
+            const popup = document.getElementById('popup');
+            const popupContent = document.getElementById('popupContent');
+            popupContent.innerHTML = `<div class="text-center mb-4">${title}</div><div class="text-gray-700">${content}</div>`;
+            if (type === 'confirm') {
+                popupContent.innerHTML += `
+                    <div class="flex justify-between my-6">
+                        <button id="cancelButton" class="w-1/2 p-3 mr-2 bg-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-400 transition duration-300">
+                            <i class="fas fa-times-circle mr-2"></i> ยกเลิก
+                        </button>
+                        <button id="confirmButton" class="w-1/2 p-3 bg-main text-white rounded-2xl ml-2 font-semibold hover:bg-green-700 transition duration-300">
+                            <i class="fas fa-check-circle mr-2"></i> ยืนยันนัดหมาย
+                        </button>
+                    </div>
+                `;
+                document.getElementById('confirmButton').addEventListener('click', () => {
+                    document.getElementById('confirmButton').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
+                    document.getElementById('confirmButton').disabled = true;
+                    submitBooking();
+                });
+                document.getElementById('cancelButton').addEventListener('click', hidePopup);
+            } else {
+                popupContent.innerHTML += `<div class="mt-6 text-center"><button onclick="hidePopup()" class="px-6 py-3 bg-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-400 transition duration-300">ปิด</button></div>`;
+            }
+            popup.style.display = 'flex';
+        }
+
+    </script>
 </body>
 
 </html>
