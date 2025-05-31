@@ -19,7 +19,12 @@
         .bg-sub2{ background-color: #faebd7; }
         .bg-sub3{ background-color: #eb77b6; }
         .border-main{ border:2px solid #eb77b6; }
-
+           <>
+       select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
         /* Calendar specific styles */
         .selected {
             background-color: #eb77b6 !important; /* Selected day background */
@@ -178,7 +183,7 @@
         <div class="loading-spinner"></div>
     </div>
     <div class="popup" id="popup">
-        <div class="max-w-md popup-content mx-auto" id="popupContent"></div>
+        <div class="max-w-md popup-content w-full m-2 p-8" id="popupContent"></div>
     </div>
     
     <div class=" w-full mx-auto rounded py-4 px-4 mb-4">
@@ -716,29 +721,33 @@ dayElement.innerHTML = `
                 statusButton.textContent = info.status === 'Available' ? `ว่าง (${info.remaining}/${info.total})` : `เต็ม (${info.remaining}/${info.total})`;
                 statusButton.disabled = true;
 
-                const bookButton = document.createElement('button');
+               const bookButton = document.createElement('button');
                 bookButton.className = `custom-button px-4 py-2 shadow-sm rounded-2xl ${info.status === 'Available' ? 'bg-sub3 text-white' : 'bg-gray-100 text-gray-400'}`;
                 bookButton.innerHTML = `<i class="fas fa-calendar-alt"></i> จองคิว`;
                 bookButton.disabled = info.status !== 'Available';
                 bookButton.addEventListener('click', () => {
                     timeInput.value = time.padStart(5, '0');
+                
+                    // แปลง selectedDate จาก "yyyy-mm-dd" เป็น "dd-mm-yyyy" เฉพาะตอนแสดง
+                    const [year, month, day] = selectedDate.split('-');
+                    const displayDate = `${day}-${month}-${year}`;
+                
                     showPopup('ยืนยันการนัดหมาย', `
                         <p>บริการ: ${form.service.value}</p>
                         <p>สาขา: ${form.locationservice.value}</p>
                         <p>ชื่อ: ${form.name.value}</p>  
                         <p>เบอร์ติดต่อ: ${form.phonenumber.value}</p>              
                         <p>หมายเหตุ: ${form.note.value || '-'}</p>
-                        <p>วันที่: ${selectedDate}</p>
+                        <p>วันที่: ${displayDate}</p>
                         <p>เวลา: ${timeInput.value}</p>
                     `, 'confirm');
                 });
-
+                
                 slotDiv.appendChild(timeSpan);
                 slotDiv.appendChild(statusButton);
                 slotDiv.appendChild(bookButton);
                 availabilityDiv.appendChild(slotDiv);
-            }
-        }
+
 
         function hidePopup() {
             document.getElementById('popup').style.display = 'none';
@@ -750,7 +759,7 @@ dayElement.innerHTML = `
             showLoading(true);
             try {
                 const formData = new FormData(form);
-                formData.append('date', selectedDate);
+                formData.append('date', );
                 
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
@@ -770,7 +779,6 @@ dayElement.innerHTML = `
                 showPopup('สำเร็จ!', 'การนัดหมายเสร็จสมบูรณ์', 'success');
                 
                 if (isLiffInitialized && typeof liff.isLoggedIn === 'function' && liff.isLoggedIn()) {
-                    await sendTextMessage();
                     if (typeof liff.closeWindow === 'function') { 
                         liff.closeWindow(); 
                     }
@@ -787,7 +795,7 @@ dayElement.innerHTML = `
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            if (!selectedDate || !timeInput.value) {
+            if (! || !timeInput.value) {
                 showPopup('เกิดข้อผิดพลาด', 'กรุณาเลือกวันที่และเวลา', 'error');
                 return;
             }
@@ -797,7 +805,7 @@ dayElement.innerHTML = `
                 <p>ชื่อ: ${form.name.value}</p>  
                 <p>เบอร์ติดต่อ: ${form.phonenumber.value}</p>              
                 <p>หมายเหตุ: ${form.note.value || '-'}</p>
-                <p>วันที่: ${selectedDate}</p>
+                <p>วันที่: ${}</p>
                 <p>เวลา: ${timeInput.value}</p>
             `, 'confirm');
         });
@@ -809,8 +817,8 @@ dayElement.innerHTML = `
             if (type === 'confirm') {
                 popupContent.innerHTML += `
                     <div class="flex justify-between my-6">
-                        <button id="cancelButton" class="w-1/2 p-3 mr-2 bg-gray-300 text-gray-700 rounded-2xl font-semibold">ยกเลิก</button>
-                        <button id="confirmButton" class="w-1/2 p-3 bg-main text-white rounded-2xl ml-2 font-semibold">ยืนยันนัดหมาย</button>
+                        <button id="cancelButton" class="w-1/2 p-2 mr-2 bg-gray-300 text-gray-700 rounded-2xl font-semibold">ยกเลิก</button>
+                        <button id="confirmButton" class="w-1/2 p-2 bg-main text-white rounded-2xl ml-2 font-semibold">ยืนยันนัดหมาย</button>
                     </div>
                 `;
                 document.getElementById('confirmButton').addEventListener('click', () => {
@@ -825,23 +833,7 @@ dayElement.innerHTML = `
             popup.style.display = 'flex';
         }
 
-        async function sendTextMessage() {
-            if (isLiffInitialized && typeof liff.isLoggedIn === 'function' && liff.isLoggedIn()) {
-                try {
-                    await liff.sendMessages([
-                        {
-                            'type': 'text',
-                            'text': `แจ้งการนัดหมายสำเร็จ\nบริการ: ${form.service.value}\nวันที่: ${selectedDate}\nเวลา: ${timeInput.value}\nชื่อ: ${form.name.value}\nเบอร์ติดต่อ: ${form.phonenumber.value}`
-                        }
-                    ]);
-                    console.log('Message sent successfully via LIFF');
-                } catch (error) {
-                    console.error('Error sending message via LIFF:', error);
-                }
-            } else {
-                console.log('LIFF not active, cannot send message.');
-            }
-        }
+
     </script>
 </body>
 </html>
