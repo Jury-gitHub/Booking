@@ -13,39 +13,55 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
     <style>
+        /* Customizing Tailwind colors */
+        :root {
+            --primary-green: #15803d;
+            --primary-green-dark: #106c33;
+        }
+
+        /* General Body and Main Layout */
         body {
             font-family: "Noto Sans Thai", sans-serif;
+            background-color: #f0fdf4; /* Light green background for body */
+            display: flex; /* Use flexbox for sidebar and main content */
+            min-height: 100vh;
+            color: #334155; /* Default text color */
         }
 
-        .bg-main {
-            background-color: #15803d;
-        }
+        /* Specific colors from your original code */
+        .bg-main { background-color: var(--primary-green); }
+        .text-main { color: var(--primary-green); }
+        .bg-sub { background-color: #f4fffb; }
+        .bg-sub2 { background-color: #faebd7; }
+        .bg-sub3 { background-color: #eb77b6; /* A vibrant pink */ }
+        .border-main { border: 2px solid #eb77b6; }
 
-        .text-main {
-            color: #15803d;
-        }
+        /* Sidebar specific styles */
+        .bg-primary-green { background-color: var(--primary-green); }
+        .hover\:bg-primary-green-dark:hover { background-color: var(--primary-green-dark); }
+        .text-primary-green { color: var(--primary-green); }
 
-        .bg-sub {
-            background-color: #f4fffb;
-        }
-
-        .bg-sub2 {
-            background-color: #faebd7;
-        }
-
-        .bg-sub3 {
-            background-color: #eb77b6;
-        }
-
-        .border-main {
-            border: 2px solid #eb77b6;
-        }
-
+        /* Form elements consistency */
         select {
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
         }
+        input[type="text"],
+        input[type="tel"],
+        input[type="time"],
+        select {
+            padding: 0.6rem 1rem;
+            border-radius: 0.45rem;
+            border: 1px solid #c7c7c7;
+            font-size: 0.875rem;
+        }
+        button {
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            font-weight: 600;
+        }
+
 
         /* Calendar specific styles */
         .selected {
@@ -56,7 +72,7 @@
         }
 
         .today {
-            border: 2px solid #15803d !important;
+            border: 2px solid var(--primary-green) !important;
             /* Highlight today's date border */
         }
 
@@ -64,6 +80,8 @@
             color: #a0a0a0;
             /* Grey out days from other months */
             background-color: #f0f0f0;
+            cursor: not-allowed;
+            /* Indicate not selectable */
         }
 
         .calendar-grid {
@@ -74,7 +92,7 @@
         }
 
         .day-header {
-            background-color: #f0f0f0;
+            background-color: #e0e0e0;
             padding: 8px 4px;
             font-weight: bold;
             color: #333;
@@ -89,28 +107,23 @@
             transition: background-color 0.2s, color 0.2s, border-color 0.2s;
             display: flex;
             flex-direction: column;
-            /* Stack day number and status */
             justify-content: center;
             align-items: center;
             min-height: 60px;
-            /* Ensure consistent height and space for text */
             font-size: 1.1em;
-            /* Make day number slightly larger */
         }
 
         .calendar-day .day-number {
             font-weight: bold;
             margin-bottom: 2px;
-            /* Space between number and status */
         }
 
         .calendar-day .day-status {
             font-size: 0.75em;
-            /* Smaller font for status text */
             font-weight: normal;
         }
 
-        /* Styles for 'Available', 'Closed', 'Full' days */
+        /* Styles for 'Available', 'Closed', 'Full', 'Expired' days */
         .day-available {
             background-color: #d4edda;
             /* Light green */
@@ -136,15 +149,25 @@
             border: 1px dashed #856404;
         }
 
+        .day-expired {
+            background-color: #e9e9e9;
+            /* Light grey for past dates */
+            color: #a0a0a0;
+            /* Grey text */
+            cursor: not-allowed;
+            border: 1px solid #d0d0d0;
+        }
+
         /* Hover effects for available days */
-        .calendar-day:hover:not(.selected):not(.other-month):not(.day-closed):not(.day-full) {
+        .calendar-day:hover:not(.selected):not(.other-month):not(.day-closed):not(.day-full):not(.day-expired) {
             background-color: #b5e0c5;
             /* Slightly darker green on hover */
         }
 
-        /* No hover effect for closed/full days, or a subtle one */
+        /* No hover effect for closed/full/expired days, or a subtle one */
         .day-closed:hover,
-        .day-full:hover {
+        .day-full:hover,
+        .day-expired:hover {
             opacity: 0.9;
             /* Slight visual feedback but still no click */
         }
@@ -208,10 +231,11 @@
         .popup-content {
             background: white;
             padding: 50px;
-            border-radius: 8px;
+            border-radius: 12px;
             text-align: left;
-            width: 80%;
+            width: 90%;
             max-width: 450px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         #memberDataLoader {
@@ -246,118 +270,210 @@
         .blink {
             animation: blink 1s infinite;
         }
+
+        /* Responsive adjustments for sidebar and main content */
+        @media (min-width: 1024px) { /* On large screens (lg) */
+            body {
+                flex-direction: row; /* Sidebar and main content side-by-side */
+            }
+            aside {
+                width: 64; /* Fixed width for sidebar */
+                min-height: 100vh;
+            }
+            main {
+                flex: 1; /* Main content takes remaining space */
+                padding-top: 0; /* Remove top padding if header is not present */
+            }
+            /* Adjust header positioning if needed */
+            .header-main-content {
+                display: none; /* Hide the top header if sidebar handles it */
+            }
+        }
+        @media (max-width: 1023px) { /* On small screens (not lg) */
+            body {
+                flex-direction: column; /* Sidebar on top, then main content */
+            }
+            aside {
+                width: 100%; /* Sidebar takes full width */
+                padding-bottom: 20px; /* Add some space below sidebar */
+            }
+        }
     </style>
 </head>
 
-<body class="bg-sub flex flex-col min-h-screen">
-    <!-- Header Section -->
-    <div class="bg-main to-slate-700 text-center text-white p-10">
-        <p class="text-xl">จองคิว</p>
-        <h1 class="text-3xl font-bold">ทันตกรรม KPJH</h1>
-        <p class="text-lg text-gray-200">รพ.ค่ายประจักษ์ฯ</p>
-    </div>
+<body class="bg-sub">
+    <!-- Sidebar -->
+    <aside class="w-full lg:w-64 bg-white text-gray-800 shadow-lg p-6 flex flex-col min-h-screen">
+        <h2 class="text-2xl font-bold mb-8 text-primary-green">ทันตกรรม KPJH</h2>
+
+        <ul class="space-y-4 flex-1">
+            <li>
+                <a href="#" onclick="resetToServiceSelection(event)"
+                    class="flex items-center p-3 rounded-lg text-gray-600 hover:text-primary-green hover:bg-primary-green hover:bg-opacity-5 font-medium transition duration-300">
+                    <i class="fas fa-tachometer-alt mr-3 text-lg"></i>Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="#"
+                    class="flex items-center p-3 rounded-lg text-white bg-primary-green font-bold transition duration-300">
+                    <i class="fas fa-calendar-alt mr-3 text-lg"></i>Booking
+                </a>
+            </li>
+            <li>
+                <a href="#"
+                    class="flex items-center p-3 rounded-lg text-gray-600 hover:text-primary-green hover:bg-primary-green hover:bg-opacity-5 font-medium transition duration-300">
+                    <i class="fas fa-cog mr-3 text-lg"></i>Setting
+                </a>
+            </li>
+        </ul>
+    </aside>
 
     <!-- Global Loading Overlay -->
     <div class="loading-overlay" id="globalLoadingOverlay">
         <div class="loading-spinner"></div>
     </div>
     <div class="popup" id="popup">
-        <div class="max-w-md popup-content w-full m-2 p-8" id="popupContent"></div>
+        <div class="popup-content" id="popupContent"></div>
     </div>
 
-    <div class=" w-full mx-auto rounded py-4 px-4 mb-4">
-        <form id="bookingForm" class="space-y-2 pt-2" novalidate>
-            <input type="hidden" name="action" value="makeBooking">
+    <!-- Main Content Area -->
+    <main class="flex-1 p-8 flex flex-col items-center">
+        <!-- Header Section (Only visible on smaller screens, or if you want a separate header on main content) -->
+        <div class="bg-main text-center text-white p-10 pb-6 rounded-b-2xl shadow-md w-full max-w-screen-md lg:hidden header-main-content">
+            <p class="text-xl">จองคิว</p>
+            <h1 class="text-3xl font-bold">ทันตกรรม KPJH</h1>
+            <p class="text-lg text-gray-200">รพ.ค่ายประจักษ์ฯ</p>
+        </div>
 
-            <!-- Step 0: Initial Selection -->
-            <div id="step0" class="grid gap-5 max-w-sm mx-auto">
-                <div class="text-center font-semibold mb-6">
-                    <h2 class="text-3xl text-main">เลือกบริการ</h2>
-                </div>
-                <div class="flex justify-between">
-                    <button type="button" onclick="selectOption(1)"
-                        class="w-full h-48 mx-2 bg-blue-200 text-black py-3 rounded-2xl">คลินิก(นอกเวลา) <p
-                            class="text-black"> วันปกติ </p></button>
-                    <button type="button" onclick="selectOption(2)"
-                        class="w-full h-48 mx-2 bg-pink-300 text-black py-3 rounded-2xl">คลินิก(นอกเวลา) <p
-                            class="text-black"> เสาร์-อาทิตย์ </p></button>
-                </div>
-            </div>
+        <div class="w-full max-w-screen-md mx-auto bg-white rounded-lg shadow-lg py-6 px-4 mt-8 mb-8 border border-gray-200">
+            <form id="bookingForm" class="space-y-6 pt-2" novalidate>
+                <input type="hidden" name="action" value="makeBooking">
 
-            <!-- Step 1: Booking Form -->
-            <div id="step1" class="max-w-sm mx-auto" style="display:none;">
-                <div class="flex mb-4">
-                    <span class="bg-white flex items-center border rounded-2xl p-2 mr-2 w-32">
-                        <img src="https://img.icons8.com/?size=100&id=22128&format=png&color=000000"
-                            class="w-6 h-6 mr-1">
-                        <span class="text-black"> บริการ </span>
-                    </span>
-                    <select id="service" name="service"
-                        class="rounded-2xl bg-white border text-gray-900 block flex-1 px-4 w-full"
-                        placeholder="ตัวเลือกบริการ"></select>
+                <!-- Step 0: Initial Selection (Dashboard-like Service Cards) -->
+                <div id="step0" class="grid gap-5">
+                    <div class="text-center font-semibold mb-4">
+                        <h2 class="text-3xl text-main">เลือกบริการ</h2>
+                        <p class="text-gray-500 text-sm">กรุณาเลือกประเภทคลินิกที่ต้องการจองคิว</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button type="button" onclick="selectOption(1)"
+                            class="flex flex-col items-center justify-center w-full sm:w-1/2 p-6 bg-blue-100 text-blue-800 rounded-2xl shadow-md hover:bg-blue-200 transition duration-300">
+                            <i class="fas fa-stethoscope fa-3x mb-3 text-blue-500"></i>
+                            <span class="text-xl font-bold">คลินิก(นอกเวลา)</span>
+                            <span class="text-md text-blue-600">วันปกติ</span>
+                        </button>
+                        <button type="button" onclick="selectOption(2)"
+                            class="flex flex-col items-center justify-center w-full sm:w-1/2 p-6 bg-pink-100 text-pink-800 rounded-2xl shadow-md hover:bg-pink-200 transition duration-300">
+                            <i class="fas fa-calendar-alt fa-3x mb-3 text-pink-500"></i>
+                            <span class="text-xl font-bold">คลินิก(นอกเวลา)</span>
+                            <span class="text-md text-pink-600">เสาร์-อาทิตย์</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="flex mb-4">
-                    <span class="bg-white flex items-center border rounded-2xl p-2 mr-2 w-32">
-                        <img src="https://img.icons8.com/?size=100&id=Ynh2i0jcHfB4&format=png&color=000000"
-                            class="w-6 h-6 mr-1">
-                        <span class="text-black"> สาขา </span>
-                    </span>
-                    <select id="locationservice" name="locationservice"
-                        class="rounded-2xl bg-white border text-gray-900 block flex-1 px-4 w-full"
-                        placeholder="ตัวเลือกสถานที่"></select>
-                </div>
-                <div class="bg-sub4 px-4 py-4 my-4 rounded-2xl">
-                    <input type="hidden" id="displayName" name="displayName">
-                    <div class="loading-container">
-                        <div id="memberDataLoader" style="display:none;">
-                            <div class="text-center text-white">ค้นหารายชื่อ..</div>
+
+                <!-- Step 1: Booking Form (Enhanced with sections/cards) -->
+                <div id="step1" style="display:none;">
+                    <div class="text-center font-semibold mb-6">
+                        <h2 class="text-3xl text-main">ข้อมูลการจอง</h2>
+                        <p class="text-gray-500 text-sm">กรุณากรอกข้อมูลส่วนตัวและเลือกบริการ</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-2xl shadow-sm mb-6">
+                        <div class="flex items-center mb-4">
+                            <span class="flex items-center justify-center w-32 bg-main text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                                <i class="fas fa-user-md mr-2"></i>
+                                <span class="text-sm">บริการ</span>
+                            </span>
+                            <select id="service" name="service"
+                                class="flex-1 border border-gray-300 text-gray-900 rounded-r-2xl px-4 py-2 focus:ring-main focus:border-main"></select>
                         </div>
-                        <div class="text-main pb-4">ฟอร์มข้อมูล</div>
-                        <div class="flex justify-center items-center">
-                            <div class="max-w-md">
-                                <div class="flex mb-6">
-                                    <span class="text-center bg-sub3 rounded-2xl mr-2 p-2 w-32"><span
-                                            class="text-white text-sm">ชื่อ สกุล</span></span>
-                                    <input type="text" id="name" name="name" class="w-full p-2 shadow-sm rounded-2xl"
+                        <div class="flex items-center">
+                            <span class="flex items-center justify-center w-32 bg-main text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                                <i class="fas fa-hospital mr-2"></i>
+                                <span class="text-sm">สาขา</span>
+                            </span>
+                            <select id="locationservice" name="locationservice"
+                                class="flex-1 border border-gray-300 text-gray-900 rounded-r-2xl px-4 py-2 focus:ring-main focus:border-main"></select>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-6 rounded-2xl shadow-sm">
+                        <input type="hidden" id="displayName" name="displayName">
+                        <!-- Hidden field to store Line User ID as 'administrator' -->
+                        <input type="hidden" id="administratorId" name="administrator">
+                        <!-- The request specifies changing 'useridline' to 'administrator'.
+                            Assuming this field still stores the LINE User ID for tracking purposes,
+                            but the name sent to the backend is 'administrator'. -->
+
+                        <div class="loading-container">
+                            <div id="memberDataLoader"
+                                class="absolute top-0 left-0 w-full h-full bg-white bg-opacity-80 flex items-center justify-center rounded-2xl"
+                                style="display:none;">
+                                <div class="text-center text-main text-lg font-semibold">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i> กำลังค้นหาข้อมูล...
+                                </div>
+                            </div>
+                            <h3 class="text-main text-xl font-semibold mb-4">ข้อมูลผู้รับบริการ</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <span class="flex items-center justify-center w-32 bg-sub3 text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                                        <i class="fas fa-user mr-2"></i>
+                                        <span class="text-sm">ชื่อ สกุล</span>
+                                    </span>
+                                    <input type="text" id="name" name="name"
+                                        class="flex-1 p-2 border border-gray-300 rounded-r-2xl focus:ring-main focus:border-main"
                                         required>
                                 </div>
-                                <div class="flex  mb-6">
-                                    <span class="text-center bg-sub3 rounded-2xl mr-2 p-2 w-32"><span
-                                            class="text-white text-sm">เบอร์ติดต่อ</span></span>
+                                <div class="flex items-center">
+                                    <span class="flex items-center justify-center w-32 bg-sub3 text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                                        <i class="fas fa-phone mr-2"></i>
+                                        <span class="text-sm">เบอร์ติดต่อ</span>
+                                    </span>
                                     <input type="tel" id="phonenumber" name="phonenumber"
-                                        class="w-full p-2 shadow-sm rounded-2xl" required>
+                                        class="flex-1 p-2 border border-gray-300 rounded-r-2xl focus:ring-main focus:border-main"
+                                        required>
                                 </div>
-                                <div class="flex  mb-6">
-                                    <span class="text-center  bg-sub3 rounded-2xl mr-2 p-2 w-32"><span
-                                            class="text-white text-sm">สิทธิการรักษา</span></span>
+                                <div class="flex items-center">
+                                    <span class="flex items-center justify-center w-32 bg-sub3 text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                                        <i class="fas fa-hand-holding-medical mr-2"></i>
+                                        <span class="text-sm">สิทธิการรักษา</span>
+                                    </span>
                                     <input type="text" id="nickname" name="nickname"
-                                        class="w-full p-2 shadow-sm rounded-2xl">
+                                        class="flex-1 p-2 border border-gray-300 rounded-r-2xl focus:ring-main focus:border-main">
                                 </div>
-
-                                <div class="flex">
-                                    <span class="text-center bg-sub3 rounded-2xl mr-2 p-2 w-32"><span
-                                            class="text-white text-sm">หมายเหตุ</span></span>
-                                    <input type="text" id="note" name="note" class="w-full p-2 shadow-sm rounded-2xl">
+                                <div class="flex items-center">
+                                    <span class="flex items-center justify-center w-32 bg-sub3 text-white py-2 px-3 rounded-l-2xl shadow-sm">
+                                        <i class="fas fa-sticky-note mr-2"></i>
+                                        <span class="text-sm">หมายเหตุ</span>
+                                    </span>
+                                    <input type="text" id="note" name="note"
+                                        class="flex-1 p-2 border border-gray-300 rounded-r-2xl focus:ring-main focus:border-main">
                                 </div>
-                                <input type="hidden" id="userlineid" name="userlineid">
                             </div>
                         </div>
                     </div>
-                </div>
-                <div id="buttons" class="flex">
-                    <button type="button" onclick="prevStep0()"
-                        class="w-1/3 p-2 mt-5 mr-2 bg-white shadow-sm text-main py-3 rounded-2xl">กลับ</button>
-                    <button type="button" onclick="nextStep()"
-                        class="w-2/3 bg-sub3 text-white py-3 mt-4 shadow-sm rounded-2xl">ถัดไป</button>
-                </div>
-            </div>
 
-            <!-- Step 2: Date and Time Selection -->
-            <div id="step2" class="grid gap-4 max-w-sm mx-auto" style="display:none;">
-                <div class="text-center font-semibold mb-6">
-                    <div class="flex justify-center space-x-2">
+                    <div id="buttons" class="flex justify-between mt-6">
+                        <button type="button" onclick="prevStep0()"
+                            class="flex-1 mr-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-2xl shadow-md hover:bg-gray-300 transition duration-300">
+                            <i class="fas fa-arrow-left mr-2"></i> กลับ
+                        </button>
+                        <button type="button" onclick="nextStep()"
+                            class="flex-1 ml-2 px-6 py-3 bg-sub3 text-white rounded-2xl shadow-md hover:bg-pink-600 transition duration-300">
+                            ถัดไป <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Date and Time Selection (Calendar and Slots) -->
+                <div id="step2" style="display:none;">
+                    <div class="text-center font-semibold mb-6">
+                        <h2 class="text-3xl text-main">เลือกวันและเวลา</h2>
+                        <p class="text-gray-500 text-sm">เลือกวันว่างในปฏิทินและเวลาที่ต้องการ</p>
+                    </div>
+                    <div class="flex justify-center space-x-2 mb-4">
                         <select id="monthSelect" aria-label="Month"
-                            class="text-center bg-white text-black w-1/2 border-2 border-main rounded-2xl px-2 py-4">
+                            class="text-center bg-white text-black w-1/2 border-2 border-main rounded-2xl px-2 py-4 focus:ring-main focus:border-main">
                             <option value="0">มกราคม</option>
                             <option value="1">กุมภาพันธ์</option>
                             <option value="2">มีนาคม</option>
@@ -372,36 +488,41 @@
                             <option value="11">ธันวาคม</option>
                         </select>
                         <select id="yearSelect" aria-label="Year"
-                            class="text-center bg-white text-black w-1/2 border-2 border-main rounded-2xl px-2 py-4"></select>
+                            class="text-center bg-white text-black w-1/2 border-2 border-main rounded-2xl px-2 py-4 focus:ring-main focus:border-main"></select>
                     </div>
-                </div>
-                <!-- Calendar Grid -->
-                <div id="calendar" class="calendar-grid mb-4">
-                    <div class="day-header">อา.</div>
-                    <div class="day-header">จ.</div>
-                    <div class="day-header">อ.</div>
-                    <div class="day-header">พ.</div>
-                    <div class="day-header">พฤ.</div>
-                    <div class="day-header">ศ.</div>
-                    <div class="day-header">ส.</div>
-                </div>
-                <!-- End Calendar Grid -->
 
-                <div id="availability" class="max-w-sm mx-auto space-y-2"></div>
+                    <!-- Calendar Grid -->
+                    <div id="calendar" class="calendar-grid mb-6 p-4 bg-gray-50 rounded-lg shadow-md">
+                        <div class="day-header">อา.</div>
+                        <div class="day-header">จ.</div>
+                        <div class="day-header">อ.</div>
+                        <div class="day-header">พ.</div>
+                        <div class="day-header">พฤ.</div>
+                        <div class="day-header">ศ.</div>
+                        <div class="day-header">ส.</div>
+                    </div>
+                    <!-- End Calendar Grid -->
 
-                <div class="hidden">
-                    <label for="time" class="block text-sm">Time:</label>
-                    <input type="time" id="time" name="time" required readonly
-                        class="w-full px-3 py-3 border border-blue-900 rounded-2xl">
+                    <div id="availability" class="max-w-sm mx-auto space-y-3 bg-white p-4 rounded-lg shadow-sm">
+                        <!-- Availability slots will be rendered here -->
+                    </div>
+
+                    <div class="hidden">
+                        <label for="time" class="block text-sm">Time:</label>
+                        <input type="time" id="time" name="time" required readonly
+                            class="w-full px-3 py-3 border border-blue-900 rounded-2xl">
+                    </div>
+                    <div class="hidden text-center">
+                        <input type="submit" value="Submit" class="px-6 py-4 bg-main text-black font-semibold rounded-2xl">
+                    </div>
+                    <button type="button" onclick="prevStep()"
+                        class="w-32 px-6 py-3 mt-6 bg-gray-200 text-gray-700 rounded-2xl shadow-md hover:bg-gray-300 transition duration-300">
+                        <i class="fas fa-arrow-left mr-2"></i> กลับ
+                    </button>
                 </div>
-                <div class="hidden text-center">
-                    <input type="submit" value="Submit" class="px-6 py-4 bg-main text-black font-semibold rounded-2xl">
-                </div>
-                <button type="button" onclick="prevStep()"
-                    class="w-32 p-2 mt-5 bg-white text-main py-3 shadow-sm rounded-2xl">กลับหน้าหลัก</button>
-            </div>
-        </form>
-    </div>
+            </form>
+        </div>
+    </main>
 
     <script>
         const globalLoadingOverlay = document.getElementById('globalLoadingOverlay');
@@ -433,12 +554,19 @@
         document.addEventListener('DOMContentLoaded', async () => {
             showLoading(true);
             try {
+                // Initialize steps: Hide all except step0
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'none';
+                document.getElementById('step0').style.display = 'grid'; // Ensure step0 is visible initially
+
+
                 if (typeof liff !== 'undefined' && typeof liff.init === 'function') {
                     await liff.init({ liffId: LIFF_ID });
                     isLiffInitialized = true;
                     if (liff.isLoggedIn()) {
                         liffProfile = await liff.getProfile();
-                        document.getElementById('userlineid').value = liffProfile.userId;
+                        // Changed 'userlineid' to 'administratorId' as per request
+                        document.getElementById('administratorId').value = liffProfile.userId;
                         document.getElementById('displayName').value = liffProfile.displayName;
                         await fetchData(liffProfile.userId);
                     } else {
@@ -467,6 +595,7 @@
 
             document.getElementById('step0').style.display = 'none';
             document.getElementById('step1').style.display = 'block';
+            currentStep = 1; // Update currentStep when moving from 0 to 1
 
             showLoading(true);
             await fetchDropdownData();
@@ -506,7 +635,8 @@
         }
 
         function displayData(row) {
-            document.getElementById('userlineid').value = row[1] || '';
+            // Changed 'userlineid' to 'administratorId'
+            document.getElementById('administratorId').value = row[1] || '';
             document.getElementById('name').value = row[2] || '';
             document.getElementById('phonenumber').value = row[3] || '';
             document.getElementById('nickname').value = row[4] || '';
@@ -516,9 +646,7 @@
             globalLoadingOverlay.style.display = isLoading ? 'flex' : 'none';
         }
 
-        let currentStep = 1;
-        let selectedDate = '';
-        let isSubmitting = false;
+        let currentStep = 0; // Initialize currentStep to 0 for step0
 
         function nextStep() {
             if (currentStep === 1) {
@@ -531,22 +659,31 @@
                 }
             }
 
-            if (currentStep < 2) {
+            if (currentStep < 2) { // Max step is 2
                 document.getElementById(`step${currentStep}`).style.display = 'none';
                 currentStep++;
                 document.getElementById(`step${currentStep}`).style.display = 'block';
             }
         }
 
-        function prevStep0() {
+        // Renamed prevStep0 to resetToServiceSelection for clarity when called from sidebar
+        function resetToServiceSelection(event) {
+            if (event) event.preventDefault(); // Prevent default link behavior if called from <a>
             document.getElementById('step1').style.display = 'none';
             document.getElementById('step2').style.display = 'none';
-            document.getElementById('step0').style.display = 'grid';
-            currentStep = 0;
+            document.getElementById('step0').style.display = 'grid'; // Ensure step0 is visible
+            currentStep = 0; // Reset current step
+            // Clear any previously selected options or data specific to the service type
+            WEB_APP_URL = '';
+            selectedServiceType = '';
+            // You might want to reset other form fields here if returning to step 0 means a full reset
+            form.reset();
+            availabilityDiv.innerHTML = '';
+            calendarDiv.querySelectorAll('.calendar-day').forEach(el => el.remove());
         }
 
         function prevStep() {
-            if (currentStep > 1) {
+            if (currentStep > 0) { // Can't go below step 0
                 document.getElementById(`step${currentStep}`).style.display = 'none';
                 currentStep--;
                 document.getElementById(`step${currentStep}`).style.display = 'block';
@@ -564,6 +701,7 @@
                 populateDropdown('locationservice', data.locationservice);
             } catch (error) {
                 console.error('There was a problem with the fetch operation:', error);
+                showPopup('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดตัวเลือกบริการได้ โปรดลองใหม่อีกครั้ง', 'error');
             }
         }
 
@@ -592,13 +730,14 @@
 
         function populateYearSelect(currentYear) {
             yearSelect.innerHTML = '';
-            for (let i = currentYear; i <= currentYear + 3; i++) {
+            for (let i = currentYear; i <= currentYear + 3; i++) { // Show current year + 3 next years
                 const option = document.createElement('option');
                 option.value = i;
-                option.textContent = i;
+                option.textContent = i + 543; // Convert to B.E.
                 yearSelect.appendChild(option);
             }
         }
+
 
         // --- NEW: Function to check availability for a given date string ---
         // This is essentially moving the logic from Apps Script's getDailyStatusSummary
@@ -639,7 +778,8 @@
         async function updateCalendar(year, month) {
             showLoading(true);
             try {
-                const existingDays = calendarDiv.querySelectorAll('.calendar-day');
+                // Clear existing days but keep headers
+                const existingDays = calendarDiv.querySelectorAll('.calendar-day, .other-month, .day-expired, .day-closed, .day-full, .day-available, .selected, .today');
                 existingDays.forEach(el => el.remove());
 
                 const today = new Date();
@@ -652,11 +792,11 @@
                 let initialDateSelected = false;
                 let firstAvailableDateElement = null;
 
-                const lastDayOfPrevMonth = new Date(year, month, 0).getDate();
+                // Add blank cells for days before the 1st of the month
                 for (let i = 0; i < firstDayOfWeek; i++) {
                     const dayElement = document.createElement('div');
                     dayElement.classList.add('calendar-day', 'other-month');
-                    dayElement.innerHTML = `<span class="day-number">${lastDayOfPrevMonth - (firstDayOfWeek - 1 - i)}</span>`;
+                    dayElement.innerHTML = `<span class="day-number"></span><span class="day-status"></span>`;
                     calendarDiv.appendChild(dayElement);
                 }
 
@@ -688,50 +828,42 @@
                         dayElement.classList.add('today');
                     }
 
-                    // Get status from the client-side derived map
                     let status = dailyStatusMap[dateStr];
                     let statusText = '';
                     let clickable = true;
 
                     // Client-side override for static closed dates (holidays, etc.)
-                    // Check against STATIC_CLOSED_DATES array
                     const currentServiceClosedDates = STATIC_CLOSED_DATES[selectedServiceType] || [];
                     if (currentServiceClosedDates.includes(dateStr)) {
-                        status = 'Closed';
+                        status = 'Closed'; // Override based on static data
                     }
 
-                    // แทนที่โค้ดส่วน switch(status) … ด้วยโลジックแบบนี้
-                    // ที่บรรทัดก่อน switch ให้ remove ขอเดิม แล้วเพิ่ม:
-
-                    // 1. ถ้าวันในอดีต
-                    if (date < startOfToday) {
+                    // Apply styles and status text based on priority
+                    if (date < startOfToday) { // Past dates
                         dayElement.classList.add('day-expired');
-                        statusText = '';             // ไม่แสดงข้อความ
+                        statusText = '';
                         clickable = false;
-                    }
-                    // 2. ถ้าอยู่ใน STATIC_CLOSED_DATES (holidays)
-                    else if (currentServiceClosedDates.includes(dateStr)) {
+                    } else if (currentServiceClosedDates.includes(dateStr)) { // Static closed dates/holidays
                         dayElement.classList.add('day-closed');
-                        statusText = 'หยุด';
+                        statusText = 'ปิด'; // Or "หยุด"
                         clickable = false;
-                    }
-                    // 3. ถ้า full booking
-                    else if (dailyStatusMap[dateStr] === 'Full') {
+                    } else if (status === 'Full') { // Fully booked
                         dayElement.classList.add('day-full');
                         statusText = 'เต็ม';
                         clickable = false;
-                    }
-                    // 4. available
-                    else {
+                    } else if (status === 'Closed') { // No slots or dynamically closed
+                        dayElement.classList.add('day-closed');
+                        statusText = 'ปิด'; // Or "หยุด"
+                        clickable = false;
+                    } else { // Available
                         dayElement.classList.add('day-available');
                         statusText = 'ว่าง';
                     }
 
-                    // สุดท้าย ใส่ HTML ของวัน
                     dayElement.innerHTML = `
-    <span class="day-number">${day}</span>
-    <span class="day-status">${statusText}</span>
-`;
+                        <span class="day-number">${day}</span>
+                        <span class="day-status">${statusText}</span>
+                    `;
 
                     if (clickable) {
                         dayElement.addEventListener('click', () => {
@@ -739,12 +871,13 @@
                             dayElement.classList.add('selected');
                             selectDate(year, month, day);
                         });
+                        // Auto-select the first available date (today or future)
                         if (status === 'Available' && !initialDateSelected) {
                             if (date.toDateString() === today.toDateString()) {
                                 dayElement.classList.add('selected');
                                 selectDate(year, month, day);
                                 initialDateSelected = true;
-                            } else if (!firstAvailableDateElement && date >= startOfToday) { // Only consider future available dates
+                            } else if (!firstAvailableDateElement && date >= startOfToday) {
                                 firstAvailableDateElement = { year, month, day, element: dayElement };
                             }
                         }
@@ -754,23 +887,26 @@
                     calendarDiv.appendChild(dayElement);
                 }
 
+                // If today is not available or past, select the first available future date
                 if (!initialDateSelected && firstAvailableDateElement) {
                     firstAvailableDateElement.element.classList.add('selected');
                     selectDate(firstAvailableDateElement.year, firstAvailableDateElement.month, firstAvailableDateElement.day);
                     initialDateSelected = true;
                 } else if (!initialDateSelected) {
+                    // No available dates in the current month
                     availabilityDiv.innerHTML = '<div class="text-center text-red-500 py-4">ไม่มีช่วงเวลาที่ว่างสำหรับเดือนนี้</div>';
-                    selectedDate = '';
-                    availabilityDiv.innerHTML = '';
+                    selectedDate = ''; // Clear selected date if no availability
+                    timeInput.value = ''; // Clear selected time
                 }
 
 
+                // Add blank cells for days after the last day of the month
                 const lastDayOfMonth = new Date(year, month, daysInMonth);
                 const lastDayOfWeek = lastDayOfMonth.getDay();
                 for (let i = 1; i <= (6 - lastDayOfWeek); i++) {
                     const dayElement = document.createElement('div');
                     dayElement.classList.add('calendar-day', 'other-month');
-                    dayElement.innerHTML = `<span class="day-number">${i}</span>`;
+                    dayElement.innerHTML = `<span class="day-number"></span><span class="day-status"></span>`;
                     calendarDiv.appendChild(dayElement);
                 }
             } catch (error) {
@@ -809,37 +945,50 @@
 
             for (const [time, info] of Object.entries(availability)) {
                 const slotDiv = document.createElement('div');
-                slotDiv.className = 'flex justify-between items-center py-2';
+                slotDiv.className = 'flex flex-col sm:flex-row justify-between items-center py-3 px-4 bg-white rounded-lg shadow-md mb-2';
 
                 const timeSpan = document.createElement('span');
-                timeSpan.className = 'px-6 py-2 rounded-2xl bg-white text-main shadow-sm';
+                timeSpan.className = 'font-semibold text-main text-lg mb-2 sm:mb-0';
                 timeSpan.textContent = `${time} น.`;
 
+                const statusAndBookContainer = document.createElement('div');
+                statusAndBookContainer.className = 'flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto';
+
                 const statusButton = document.createElement('button');
-                statusButton.className = `px-6 py-2 rounded-2xl ${info.status === 'Available' ? 'bg-green-200 text-green-600 shadow-sm' : 'bg-red-200 shadow-sm text-red-600'}`;
+                statusButton.className = `px-4 py-2 rounded-xl text-sm font-medium ${info.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} pointer-events-none`;
                 statusButton.textContent = info.status === 'Available' ? `ว่าง (${info.remaining}/${info.total})` : `เต็ม (${info.remaining}/${info.total})`;
                 statusButton.disabled = true;
 
                 const bookButton = document.createElement('button');
-                bookButton.className = `custom-button px-4 py-2 shadow-sm rounded-2xl ${info.status === 'Available' ? 'bg-sub3 text-white' : 'bg-gray-100 text-gray-400'}`;
-                bookButton.innerHTML = `<i class="fas fa-calendar-alt"></i> จองคิว`;
+                bookButton.className = `px-5 py-2 rounded-xl font-semibold text-white transition duration-300 ${info.status === 'Available' ? 'bg-sub3 hover:bg-pink-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`;
+                bookButton.innerHTML = `<i class="fas fa-calendar-check mr-2"></i> จองคิว`;
                 bookButton.disabled = info.status !== 'Available';
                 bookButton.addEventListener('click', () => {
                     timeInput.value = time.padStart(5, '0');
-                    showPopup('ยืนยันการนัดหมาย', `
-                        <p>บริการ: ${form.service.value}</p>
-                        <p>สาขา: ${form.locationservice.value}</p>
-                        <p>ชื่อ: ${form.name.value}</p>  
-                        <p>เบอร์ติดต่อ: ${form.phonenumber.value}</p>              
-                        <p>หมายเหตุ: ${form.note.value || '-'}</p>
-                        <p>วันที่: ${selectedDate}</p>
-                        <p>เวลา: ${timeInput.value}</p>
+                    // Separate selectedDate "yyyy-mm-dd" and convert to "dd-mm-yyyy"
+                    const [year, month, day] = selectedDate.split('-');
+                    const displayDate = `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${parseInt(year) + 543}`; // Convert to B.E.
+
+                    showPopup(
+                        '<p class="text-main font-bold text-2xl mb-2"><i class="fas fa-check-circle mr-2"></i> ยืนยันการนัดหมาย</p>',
+                        `
+                        <div class="space-y-2 text-gray-700">
+                            <p><span class="font-semibold">บริการ:</span> ${form.service.value}</p>
+                            <p><span class="font-semibold">สาขา:</span> ${form.locationservice.value}</p>
+                            <p><span class="font-semibold">ชื่อ:</span> ${form.name.value}</p>  
+                            <p><span class="font-semibold">เบอร์ติดต่อ:</span> ${form.phonenumber.value}</p>              
+                            <p><span class="font-semibold">สิทธิการรักษา:</span> ${form.nickname.value || '-'}</p>
+                            <p><span class="font-semibold">หมายเหตุ:</span> ${form.note.value || '-'}</p>
+                            <p class="text-lg text-blue-700 mt-4"><span class="font-bold">วันที่:</span> ${displayDate}</p>
+                            <p class="text-lg text-blue-700"><span class="font-bold">เวลา:</span> ${timeInput.value} น.</p>
+                        </div>
                     `, 'confirm');
                 });
 
+                statusAndBookContainer.appendChild(statusButton);
+                statusAndBookContainer.appendChild(bookButton);
                 slotDiv.appendChild(timeSpan);
-                slotDiv.appendChild(statusButton);
-                slotDiv.appendChild(bookButton);
+                slotDiv.appendChild(statusAndBookContainer);
                 availabilityDiv.appendChild(slotDiv);
             }
         }
@@ -871,17 +1020,25 @@
                 const result = await response.text();
                 console.log("Booking submission result:", result);
 
-                showPopup('สำเร็จ!', 'การนัดหมายเสร็จสมบูรณ์', 'success');
+                showPopup(
+                    '<p class="text-main font-bold text-2xl mb-2"><i class="fas fa-check-circle mr-2"></i> สำเร็จ!</p>',
+                    '<p class="text-gray-700">การนัดหมายเสร็จสมบูรณ์</p>',
+                    'success'
+                );
 
                 if (isLiffInitialized && typeof liff.isLoggedIn === 'function' && liff.isLoggedIn()) {
                     if (typeof liff.closeWindow === 'function') {
-                        liff.closeWindow();
+                        // liff.closeWindow(); // Consider if you want to close LIFF automatically
                     }
                 }
 
             } catch (error) {
                 console.error('There was a problem with the booking operation:', error);
-                showPopup('เกิดข้อผิดพลาด', `ไม่สามารถส่งข้อมูลได้: ${error.message || 'โปรดลองใหม่อีกครั้ง'}`, 'error');
+                showPopup(
+                    '<p class="text-red-600 font-bold text-2xl mb-2"><i class="fas fa-exclamation-triangle mr-2"></i> เกิดข้อผิดพลาด</p>',
+                    `<p class="text-gray-700">ไม่สามารถส่งข้อมูลได้: ${error.message || 'โปรดลองใหม่อีกครั้ง'}</p>`,
+                    'error'
+                );
             } finally {
                 showLoading(false);
                 isSubmitting = false;
@@ -894,45 +1051,34 @@
                 showPopup('เกิดข้อผิดพลาด', 'กรุณาเลือกวันที่และเวลา', 'error');
                 return;
             }
-            // แยก selectedDate "yyyy-mm-dd" ออกมา แล้วสลับเป็น "dd-mm-yyyy"
-            const [year, month, day] = selectedDate.split('-');
-            const displayDate = `${day}-${month}-${year}`;
-
-            showPopup(
-                '<p class="text-blue-900">📆 ยืนยันการนัดหมาย</p>',
-                `
-            <p>บริการ: ${form.service.value}</p>
-            <p>สาขา: ${form.locationservice.value}</p>
-            <p>ชื่อ: ${form.name.value}</p>  
-            <p>เบอร์ติดต่อ: ${form.phonenumber.value}</p>              
-            <p>หมายเหตุ: ${form.note.value || '-'}</p>
-            <p>วันที่: ${displayDate}</p>
-            <p>เวลา: ${timeInput.value}</p>
-        `,
-                'confirm'
-            );
+            // Logic to show confirmation popup is now handled within selectDate and its call to showPopup
+            // The form submit listener itself primarily prevents default behavior now.
         });
 
 
         function showPopup(title, content, type) {
             const popup = document.getElementById('popup');
             const popupContent = document.getElementById('popupContent');
-            popupContent.innerHTML = `<h2 class="text-xl mb-4 font-bold text-center">${title}</h2><div class="text-gray-700">${content}</div>`;
+            popupContent.innerHTML = `<div class="text-center mb-4">${title}</div><div class="text-gray-700">${content}</div>`;
             if (type === 'confirm') {
                 popupContent.innerHTML += `
                     <div class="flex justify-between my-6">
-                        <button id="cancelButton" class="w-1/2 p-3 mr-2 bg-gray-300 text-gray-700 rounded-2xl font-semibold">ยกเลิก</button>
-                        <button id="confirmButton" class="w-1/2 p-3 bg-main text-white rounded-2xl ml-2 font-semibold">ยืนยันนัดหมาย</button>
+                        <button id="cancelButton" class="w-1/2 p-3 mr-2 bg-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-400 transition duration-300">
+                            <i class="fas fa-times-circle mr-2"></i> ยกเลิก
+                        </button>
+                        <button id="confirmButton" class="w-1/2 p-3 bg-main text-white rounded-2xl ml-2 font-semibold hover:bg-green-700 transition duration-300">
+                            <i class="fas fa-check-circle mr-2"></i> ยืนยันนัดหมาย
+                        </button>
                     </div>
                 `;
                 document.getElementById('confirmButton').addEventListener('click', () => {
-                    document.getElementById('confirmButton').innerText = 'กำลังบันทึก...';
+                    document.getElementById('confirmButton').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
                     document.getElementById('confirmButton').disabled = true;
                     submitBooking();
                 });
                 document.getElementById('cancelButton').addEventListener('click', hidePopup);
             } else {
-                popupContent.innerHTML += `<div class="mt-6 text-center"><button onclick="hidePopup()" class="px-6 py-3 bg-gray-300 text-gray-700 rounded-2xl font-semibold">ปิด</button></div>`;
+                popupContent.innerHTML += `<div class="mt-6 text-center"><button onclick="hidePopup()" class="px-6 py-3 bg-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-400 transition duration-300">ปิด</button></div>`;
             }
             popup.style.display = 'flex';
         }
