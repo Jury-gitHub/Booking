@@ -753,13 +753,13 @@ dayElement.innerHTML = `
             document.getElementById('popup').style.display = 'none';
         }
 
-        async function submitBooking() {
+       async function submitBooking() {
             if (isSubmitting) return;
             isSubmitting = true;
             showLoading(true);
             try {
                 const formData = new FormData(form);
-                formData.append('date', );
+                formData.append('date', selectedDate);
                 
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
@@ -779,6 +779,7 @@ dayElement.innerHTML = `
                 showPopup('สำเร็จ!', 'การนัดหมายเสร็จสมบูรณ์', 'success');
                 
                 if (isLiffInitialized && typeof liff.isLoggedIn === 'function' && liff.isLoggedIn()) {
+                    await sendTextMessage();
                     if (typeof liff.closeWindow === 'function') { 
                         liff.closeWindow(); 
                     }
@@ -793,7 +794,7 @@ dayElement.innerHTML = `
             }
         }
 
-      form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', (e) => {
             e.preventDefault();
             if (!selectedDate || !timeInput.value) {
                 showPopup('เกิดข้อผิดพลาด', 'กรุณาเลือกวันที่และเวลา', 'error');
@@ -810,7 +811,6 @@ dayElement.innerHTML = `
             `, 'confirm');
         });
 
-
         function showPopup(title, content, type) {
             const popup = document.getElementById('popup');
             const popupContent = document.getElementById('popupContent');
@@ -818,8 +818,8 @@ dayElement.innerHTML = `
             if (type === 'confirm') {
                 popupContent.innerHTML += `
                     <div class="flex justify-between my-6">
-                        <button id="cancelButton" class="w-1/2 p-2 mr-2 bg-gray-300 text-gray-700 rounded-2xl font-semibold">ยกเลิก</button>
-                        <button id="confirmButton" class="w-1/2 p-2 bg-main text-white rounded-2xl ml-2 font-semibold">ยืนยันนัดหมาย</button>
+                        <button id="cancelButton" class="w-1/2 p-3 mr-2 bg-gray-300 text-gray-700 rounded-2xl font-semibold">ยกเลิก</button>
+                        <button id="confirmButton" class="w-1/2 p-3 bg-main text-white rounded-2xl ml-2 font-semibold">ยืนยันนัดหมาย</button>
                     </div>
                 `;
                 document.getElementById('confirmButton').addEventListener('click', () => {
@@ -834,7 +834,23 @@ dayElement.innerHTML = `
             popup.style.display = 'flex';
         }
 
-
+        async function sendTextMessage() {
+            if (isLiffInitialized && typeof liff.isLoggedIn === 'function' && liff.isLoggedIn()) {
+                try {
+                    await liff.sendMessages([
+                        {
+                            'type': 'text',
+                            'text': `แจ้งการนัดหมายสำเร็จ\nบริการ: ${form.service.value}\nวันที่: ${selectedDate}\nเวลา: ${timeInput.value}\nชื่อ: ${form.name.value}\nเบอร์ติดต่อ: ${form.phonenumber.value}`
+                        }
+                    ]);
+                    console.log('Message sent successfully via LIFF');
+                } catch (error) {
+                    console.error('Error sending message via LIFF:', error);
+                }
+            } else {
+                console.log('LIFF not active, cannot send message.');
+            }
+        }
     </script>
 </body>
 </html>
