@@ -54,11 +54,12 @@
     /* Adjusted styles for consistency and modern look */
     input[type="text"],
     input[type="date"],
-    input[type="time"] {
-      padding: 0.75rem 1rem;
-      border-radius: 0.75rem;
-      border: 1px solid #e2e8f0;
-      font-size: 0.875rem;
+    input[type="time"],
+    select {
+    padding: 0.6rem 1rem;
+    border-radius: 0.45rem;
+    border: 1px solid #c7c7c7;
+    font-size: 0.875rem;
     }
 
     button {
@@ -103,26 +104,26 @@
       color: #334155;
     }
 
-    /* NEW: Styles for status filter buttons */
+    /* Styles for status filter buttons */
     .status-filter-btn {
-      padding: 0.5rem 0.75rem; /* Smaller padding for buttons */
-      font-size: 0.875rem; /* text-sm */
-      background-color: #e2e8f0; /* gray-200 */
-      color: #4a5568; /* gray-700 */
-      border: 1px solid #cbd5e0; /* gray-300 */
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      background-color: #e2e8f0;
+      color: #4a5568;
+      border: 1px solid #cbd5e0;
       cursor: pointer;
       transition: all 0.2s ease-in-out;
     }
 
     .status-filter-btn:hover {
-      background-color: #cbd5e0; /* gray-300 */
+      background-color: #cbd5e0;
     }
 
     .status-filter-btn.active {
       background-color: var(--primary-green);
       color: white;
       border-color: var(--primary-green-dark);
-      box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.3); /* green-600 with opacity */
+      box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.3);
     }
   </style>
 </head>
@@ -136,7 +137,6 @@
       <li>
         <a href="dashboardadmin.html"
           class="flex items-center p-3 rounded-lg text-white bg-primary-green bg-opacity-10 font-bold transition duration-300">
-          <!-- Active Link -->
           <i class="fas fa-tachometer-alt mr-3 text-lg"></i>Dashboard
         </a>
       </li>
@@ -166,51 +166,66 @@
     </div>
 
     <!-- Filter Section -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 bg-white p-6 rounded-lg shadow-md">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mb-6 bg-white p-4 rounded-lg shadow-md">
       <div>
-        <label for="filterName" class="block text-sm font-medium text-gray-700 mb-1">ชื่อ</label>
+        <label for="filterName" class="block text-sm font-medium text-gray-700 mb-0.5">ชื่อ</label>
         <input type="text" id="filterName"
           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green"
           placeholder="ค้นหาชื่อ">
       </div>
+      <!-- NEW: Service Filter as Dropdown -->
       <div>
-        <label for="filterService" class="block text-sm font-medium text-gray-700 mb-1">บริการ</label>
-        <input type="text" id="filterService"
-          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green"
-          placeholder="ค้นหาบริการ">
+        <label for="filterService" class="block text-sm font-medium text-gray-700 mb-0.5">บริการ</label>
+        <select id="filterService"
+          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green">
+          <option value="">ทั้งหมด</option>
+          <!-- Options populated by JS -->
+        </select>
+      </div>
+      <!-- NEW: Location Filter as Dropdown -->
+      <div>
+        <label for="filterLocation" class="block text-sm font-medium text-gray-700 mb-0.5">สถานที่</label>
+        <select id="filterLocation"
+          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green">
+          <option value="">ทั้งหมด</option>
+          <!-- Options populated by JS -->
+        </select>
       </div>
       <div>
-        <label for="filterLocation" class="block text-sm font-medium text-gray-700 mb-1">สถานที่</label>
-        <input type="text" id="filterLocation"
-          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green"
-          placeholder="ค้นหาสถานที่">
-      </div>
-      <div>
-        <label for="filterPhoneNumber" class="block text-sm font-medium text-gray-700 mb-1">เบอร์โทร</label>
+        <label for="filterPhoneNumber" class="block text-sm font-medium text-gray-700 mb-0.5">เบอร์โทร</label>
         <input type="text" id="filterPhoneNumber"
           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green"
           placeholder="ค้นหาเบอร์โทร">
       </div>
-      <!-- NEW: Status Filter as Buttons -->
+
+      <!-- Sort Order Dropdown -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">สถานะ</label>
+        <label for="sortOrder" class="block text-sm font-medium text-gray-700 mb-0.5">เรียงข้อมูล</label>
+        <select id="sortOrder"
+          class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary-green focus:border-primary-green">
+          <option value="date-today-first">วันที่ (วันนี้ก่อน, ใหม่สุด)</option>
+          <option value="date-asc">วันที่ (เก่าสุดไปใหม่สุด)</option>
+          <option value="date-desc">วันที่ (ใหม่สุดไปเก่าสุด)</option>
+        </select>
+      </div>
+
+      <!-- NEW: Clear All Filters Button -->
+      <div class="flex items-end"> <!-- Use flex to align button at the bottom -->
+         <button id="clearAllFiltersButton"
+          class=" px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300">
+          <i class="fas fa-times-circle mr-2"></i>ล้าง</button> 
+      </div>
+      <!-- END NEW Clear All Filters Button -->
+
+      <!-- Status Filter as Buttons -->
+      <div class="col-span-full">
+        <label class="block text-sm font-medium text-gray-700 mb-0.5">สถานะ</label>
         <div id="statusFilterButtons" class="flex flex-wrap gap-2">
           <button type="button" class="status-filter-btn rounded-lg" data-status="รอการยืนยัน">รอการยืนยัน</button>
           <button type="button" class="status-filter-btn rounded-lg" data-status="ยืนยันแล้ว">ยืนยันแล้ว</button>
           <button type="button" class="status-filter-btn rounded-lg" data-status="ยกเลิก">ยกเลิก</button>
           <button type="button" class="status-filter-btn rounded-lg" data-status="เสร็จสิ้น">เสร็จสิ้น</button>
         </div>
-      </div>
-      <!-- END NEW Status Filter -->
-      <div class="col-span-full flex justify-end mt-4">
-        <button id="applyFiltersButton"
-          class="py-2 px-6 bg-primary-green text-white rounded-lg hover:bg-primary-green-dark transition duration-300">
-          <i class="fas fa-filter mr-2"></i>คัดกรองข้อมูล
-        </button>
-        <button id="resetFiltersButton"
-          class="ml-2 py-2 px-6 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-300">
-          <i class="fas fa-redo mr-2"></i>รีเซ็ต
-        </button>
       </div>
     </div>
 
@@ -224,10 +239,8 @@
             <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">บริการ</th>
             <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">สถานที่</th>
             <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">เบอร์โทร</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">หมายเหตุ</th>
-            <th id="sortDate"
-              class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider table-header-sortable">
-              วันที่<span class="sort-icon"></span></th>
+            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">อีเมล</th>
+            <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">วันที่</th>
             <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">เวลา</th>
             <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">สถานะ</th>
             <th class="px-4 py-3 text-left font-medium text-gray-600 uppercase tracking-wider">Actions</th>
@@ -256,8 +269,6 @@
 
   </main>
 
-  <!-- REMOVED: Modal Popup for adding appointments -->
-
   <!-- Loading Spinner -->
   <div id="loadingSpinner" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden z-50">
     <div class="loader"></div>
@@ -270,20 +281,39 @@
     let filteredBookingsData = [];
     let currentPage = 1;
     const itemsPerPage = 10;
-    let currentSortColumn = 'date';
-    let currentSortDirection = 'asc';
+    let currentSortType = 'date-today-first';
+
+    // NEW: Function to parse DD-MM-YYYY to a Date object reliably
+    function parseDDMMYYYYToDateObject(dateString) {
+        if (!dateString) return new Date('Invalid Date');
+        const parts = dateString.split('-'); // e.g., ["06", "01", "2025"]
+        if (parts.length === 3) {
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10); // Month is 1-based
+            const year = parseInt(parts[2], 10);
+            // Date constructor: new Date(year, monthIndex, day)
+            // monthIndex is 0-based, so subtract 1 from the month part
+            return new Date(year, month - 1, day);
+        }
+        return new Date('Invalid Date'); // Return an invalid date if format is not as expected
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
       const tableBody = document.getElementById('tableBody');
       const loadingSpinner = document.getElementById('loadingSpinner');
-      const applyFiltersButton = document.getElementById('applyFiltersButton');
-      const resetFiltersButton = document.getElementById('resetFiltersButton');
-      const sortDateHeader = document.getElementById('sortDate');
+      const clearAllFiltersButton = document.getElementById('clearAllFiltersButton'); // NEW
+      const sortOrderSelect = document.getElementById('sortOrder');
       const prevPageButton = document.getElementById('prevPage');
       const nextPageButton = document.getElementById('nextPage');
       const pageNumbersContainer = document.getElementById('pageNumbers');
       const currentDateDisplay = document.getElementById('currentDateDisplay');
-      const statusFilterButtonsContainer = document.getElementById('statusFilterButtons'); // NEW: Reference to button container
+      const statusFilterButtonsContainer = document.getElementById('statusFilterButtons');
+
+      // Filter input references for instant filtering
+      const filterNameInput = document.getElementById('filterName');
+      const filterServiceSelect = document.getElementById('filterService'); // NEW
+      const filterLocationSelect = document.getElementById('filterLocation'); // NEW
+      const filterPhoneNumberInput = document.getElementById('filterPhoneNumber');
 
       function displayCurrentDate() {
         const today = new Date();
@@ -302,6 +332,7 @@
           const data = await response.json();
           if (Array.isArray(data)) {
             allBookingsData = data.map(detail => ({ ...detail, id: detail.idKey }));
+            populateFilterDropdowns(); // NEW: Populate service and location dropdowns
             applyAllFiltersAndSort();
           } else {
             console.error('Expected array but got:', data);
@@ -319,6 +350,38 @@
         }
       }
 
+      // NEW: Function to populate Service and Location filter dropdowns
+      function populateFilterDropdowns() {
+        const services = new Set();
+        const locations = new Set();
+
+        allBookingsData.forEach(booking => {
+          if (booking.service) services.add(booking.service);
+          if (booking.locationservice) locations.add(booking.locationservice);
+        });
+
+        // Clear existing options except "ทั้งหมด"
+        filterServiceSelect.innerHTML = '<option value="">ทั้งหมด</option>';
+        filterLocationSelect.innerHTML = '<option value="">ทั้งหมด</option>';
+
+        // Add unique services
+        Array.from(services).sort().forEach(service => {
+          const option = document.createElement('option');
+          option.value = service;
+          option.textContent = service;
+          filterServiceSelect.appendChild(option);
+        });
+
+        // Add unique locations
+        Array.from(locations).sort().forEach(location => {
+          const option = document.createElement('option');
+          option.value = location;
+          option.textContent = location;
+          filterLocationSelect.appendChild(option);
+        });
+      }
+
+
       fetchAllBookings();
 
       // --- Filter, Sort, and Pagination Logic ---
@@ -326,35 +389,29 @@
       function applyAllFiltersAndSort() {
         let tempBookings = [...allBookingsData];
 
-        const filterName = document.getElementById('filterName').value.toLowerCase();
-        const filterService = document.getElementById('filterService').value.toLowerCase();
-        const filterLocation = document.getElementById('filterLocation').value.toLowerCase();
-        const filterPhoneNumber = document.getElementById('filterPhoneNumber').value.toLowerCase();
+        // Read values from all filter inputs/selects
+        const filterName = filterNameInput.value.toLowerCase();
+        const filterService = filterServiceSelect.value.toLowerCase(); // NEW
+        const filterLocation = filterLocationSelect.value.toLowerCase(); // NEW
+        const filterPhoneNumber = filterPhoneNumberInput.value.toLowerCase();
         
-        // NEW: Get selected statuses from active buttons
         const selectedStatusOptions = Array.from(statusFilterButtonsContainer.querySelectorAll('.status-filter-btn.active'))
                                           .map(btn => btn.dataset.status.toLowerCase());
         
         tempBookings = tempBookings.filter(detail => {
           const matchesName = !filterName || (detail.name && detail.name.toLowerCase().includes(filterName));
-          const matchesService = !filterService || (detail.service && detail.service.toLowerCase().includes(filterService));
-          const matchesLocation = !filterLocation || (detail.locationservice && detail.locationservice.toLowerCase().includes(filterLocation));
+          const matchesService = !filterService || (detail.service && detail.service.toLowerCase() === filterService); // EXACT match for dropdown
+          const matchesLocation = !filterLocation || (detail.locationservice && detail.locationservice.toLowerCase() === filterLocation); // EXACT match for dropdown
           const matchesPhoneNumber = !filterPhoneNumber || (detail.phonenumber && detail.phonenumber.toLowerCase().includes(filterPhoneNumber));
           
-          // If no status buttons are active, consider all statuses a match
-          // Otherwise, only match if detail.status is in the selected (active) statuses
           const matchesStatus = selectedStatusOptions.length === 0 || 
                                 (detail.status && selectedStatusOptions.includes(detail.status.toLowerCase()));
           
           return matchesName && matchesService && matchesLocation && matchesPhoneNumber && matchesStatus;
         });
 
-        tempBookings.sort((a, b) => {
-          if (currentSortColumn === 'date') {
-            return customDateSort(a, b, currentSortDirection);
-          }
-          return 0;
-        });
+        // Sorting using the corrected customDateSort
+        tempBookings.sort((a, b) => customDateSort(a, b, currentSortType));
 
         filteredBookingsData = tempBookings;
         currentPage = 1;
@@ -362,41 +419,55 @@
         renderPaginationControls();
       }
 
-      function customDateSort(a, b, direction) {
+      // MODIFIED: customDateSort function for reliable date parsing and sorting logic
+      function customDateSort(a, b, sortType) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
+        // Use the new parsing function for reliable date conversion
+        const dateA = parseDDMMYYYYToDateObject(a.date);
+        const dateB = parseDDMMYYYYToDateObject(b.date);
 
+        // Handle invalid dates: push invalid dates to the end
         if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
         if (isNaN(dateA.getTime())) return 1; 
         if (isNaN(dateB.getTime())) return -1;
 
+        // Normalize dates to start of day for comparison
         dateA.setHours(0, 0, 0, 0);
         dateB.setHours(0, 0, 0, 0);
 
-        const isAToday = dateA.getTime() === today.getTime();
-        const isBToday = dateB.getTime() === today.getTime();
-        const isAFuture = dateA.getTime() > today.getTime();
-        const isBFuture = dateB.getTime() > today.getTime();
+        if (sortType === 'date-today-first') {
+            const isAToday = dateA.getTime() === today.getTime();
+            const isBToday = dateB.getTime() === today.getTime();
+            const isAFuture = dateA.getTime() > today.getTime();
+            const isBFuture = dateB.getTime() > today.getTime();
 
-        let valA = 0;
-        let valB = 0;
+            let valA = 0; // Category for Past dates
+            let valB = 0; // Category for Past dates
 
-        if (isAToday) valA = 2;
-        else if (isAFuture) valA = 1;
-        else valA = 0;
+            if (isAToday) valA = 2; // Category for Today's dates
+            else if (isAFuture) valA = 1; // Category for Future dates
 
-        if (isBToday) valB = 2;
-        else if (isBFuture) valB = 1;
-        else valB = 0;
+            if (isBToday) valB = 2; // Category for Today's dates
+            else if (isBFuture) valB = 1; // Category for Future dates
 
-        if (valA !== valB) {
-          return valB - valA;
+            // First, sort by category (Today > Future > Past)
+            if (valA !== valB) {
+              return valB - valA; // Descending order of category value (2, 1, 0)
+            }
+            // If they are in the same category, then sort within that category
+            if (valA === 2 || valA === 1) { // Both are Today OR both are Future
+                return dateA.getTime() - dateB.getTime(); // Sort oldest/soonest first
+            } else { // Both are Past (valA === 0)
+                return dateB.getTime() - dateA.getTime(); // Sort newest first (closest to today)
+            }
+        } else if (sortType === 'date-asc') {
+            return dateA.getTime() - dateB.getTime(); // Sort oldest to newest
+        } else if (sortType === 'date-desc') {
+            return dateB.getTime() - dateA.getTime(); // Sort newest to oldest
         }
-
-        return direction === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
+        return 0; // Default: no change
       }
 
 
@@ -418,7 +489,8 @@
           let disableCancel = false;
           let disableReminder = false;
 
-          const bookingDate = new Date(detail.date);
+          // Use the reliable parsing function here too for accurate date comparison
+          const bookingDate = parseDDMMYYYYToDateObject(detail.date);
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           const isPastDate = isNaN(bookingDate.getTime()) || bookingDate.getTime() < today.getTime();
@@ -431,6 +503,8 @@
               disableConfirm = true;
               if (isPastDate) {
                 disableReminder = true;
+                // Optionally disable complete if it's already a past date and not completed
+                // disableComplete = true; // Uncomment if you want to prevent completing old 'confirmed' bookings
               }
               break;
             case 'ยกเลิก':
@@ -479,7 +553,6 @@
         attachEventListeners();
       }
 
-      // Pagination Logic (shows max 4 numbers + ellipsis)
       function renderPaginationControls() {
         pageNumbersContainer.innerHTML = '';
         const totalPages = Math.ceil(filteredBookingsData.length / itemsPerPage);
@@ -547,56 +620,51 @@
       }
 
 
-      // --- Event Listeners ---
+      // --- Event Listeners for Instant Filtering ---
 
-      // NEW: Event listener for status filter buttons (using event delegation)
+      // Text Inputs
+      filterNameInput.addEventListener('input', applyAllFiltersAndSort);
+      filterPhoneNumberInput.addEventListener('input', applyAllFiltersAndSort);
+
+      // Dropdowns
+      filterServiceSelect.addEventListener('change', applyAllFiltersAndSort); // NEW
+      filterLocationSelect.addEventListener('change', applyAllFiltersAndSort); // NEW
+      sortOrderSelect.addEventListener('change', () => {
+          currentSortType = sortOrderSelect.value;
+          applyAllFiltersAndSort();
+      });
+
+      // Status Filter Buttons (click handler is already defined)
       statusFilterButtonsContainer.addEventListener('click', (event) => {
           const clickedButton = event.target.closest('.status-filter-btn');
           if (clickedButton) {
-              clickedButton.classList.toggle('active'); // Toggle 'active' class
-              applyAllFiltersAndSort(); // Re-apply all filters
+              clickedButton.classList.toggle('active');
+              applyAllFiltersAndSort();
           }
       });
 
-      // Apply Filters Button
-      applyFiltersButton.addEventListener('click', applyAllFiltersAndSort);
-
-      // Reset Filters Button
-      resetFiltersButton.addEventListener('click', () => {
-        document.getElementById('filterName').value = '';
-        document.getElementById('filterService').value = '';
-        document.getElementById('filterLocation').value = '';
-        document.getElementById('filterPhoneNumber').value = '';
+      // NEW: Clear All Filters Button
+      clearAllFiltersButton.addEventListener('click', () => {
+        // Clear text inputs
+        filterNameInput.value = '';
+        filterPhoneNumberInput.value = '';
         
-        // NEW: Deselect all status filter buttons
+        // Reset dropdowns to "ทั้งหมด"
+        filterServiceSelect.value = '';
+        filterLocationSelect.value = '';
+        sortOrderSelect.value = 'date-today-first'; // Reset sort order to default
+        currentSortType = 'date-today-first'; 
+
+        // Deselect all status filter buttons
         document.querySelectorAll('.status-filter-btn').forEach(button => {
             button.classList.remove('active');
         });
 
-        applyAllFiltersAndSort();
+        applyAllFiltersAndSort(); // Re-apply all filters
       });
 
 
-      // Sort Header Click
-      sortDateHeader.addEventListener('click', () => {
-        document.querySelectorAll('.table-header-sortable').forEach(header => {
-          header.classList.remove('asc', 'desc');
-        });
-
-        if (currentSortColumn === 'date') {
-          currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-          currentSortColumn = 'date';
-          currentSortDirection = 'asc';
-        }
-
-        sortDateHeader.classList.add(currentSortDirection);
-
-        applyAllFiltersAndSort();
-      });
-
-
-      // Pagination Buttons
+      // Pagination Buttons (existing logic)
       prevPageButton.addEventListener('click', () => {
         if (currentPage > 1) {
           currentPage--;
