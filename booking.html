@@ -793,9 +793,9 @@ dayElement.innerHTML = `
             }
         }
 
-        form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', (e) => {
             e.preventDefault();
-            if (! || !timeInput.value) {
+            if (!selectedDate || !timeInput.value) {
                 showPopup('เกิดข้อผิดพลาด', 'กรุณาเลือกวันที่และเวลา', 'error');
                 return;
             }
@@ -805,10 +805,11 @@ dayElement.innerHTML = `
                 <p>ชื่อ: ${form.name.value}</p>  
                 <p>เบอร์ติดต่อ: ${form.phonenumber.value}</p>              
                 <p>หมายเหตุ: ${form.note.value || '-'}</p>
-                <p>วันที่: ${}</p>
+                <p>วันที่: ${selectedDate}</p>
                 <p>เวลา: ${timeInput.value}</p>
             `, 'confirm');
         });
+
 
         function showPopup(title, content, type) {
             const popup = document.getElementById('popup');
