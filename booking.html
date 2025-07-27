@@ -65,6 +65,12 @@
             /* Grey out days from other months */
             background-color: #f0f0f0;
         }
+        .day-expired {
+            background-color: #f0f0f0;
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
 
         .calendar-grid {
             display: grid;
@@ -250,14 +256,12 @@
 </head>
 
 <body class="bg-sub flex flex-col min-h-screen">
-    <!-- Header Section -->
     <div class="bg-main to-slate-700 text-center text-white p-10">
         <p class="text-xl">จองคิว</p>
         <h1 class="text-3xl font-bold">ทันตกรรม KPJH</h1>
         <p class="text-lg text-gray-200">รพ.ค่ายประจักษ์ฯ</p>
     </div>
 
-    <!-- Global Loading Overlay -->
     <div class="loading-overlay" id="globalLoadingOverlay">
         <div class="loading-spinner"></div>
     </div>
@@ -269,7 +273,6 @@
         <form id="bookingForm" class="space-y-2 pt-2" novalidate>
             <input type="hidden" name="action" value="makeBooking">
 
-            <!-- Step 0: Initial Selection -->
             <div id="step0" class="grid gap-5 max-w-sm mx-auto">
                 <div class="text-center font-semibold mb-6">
                     <h2 class="text-3xl text-main">เลือกบริการ</h2>
@@ -284,7 +287,6 @@
                 </div>
             </div>
 
-            <!-- Step 1: Booking Form -->
             <div id="step1" class="max-w-sm mx-auto" style="display:none;">
                 <div class="flex mb-4">
                     <span class="bg-white flex items-center border rounded-2xl p-2 mr-2 w-32">
@@ -352,7 +354,6 @@
                 </div>
             </div>
 
-            <!-- Step 2: Date and Time Selection -->
             <div id="step2" class="grid gap-4 max-w-sm mx-auto" style="display:none;">
                 <div class="text-center font-semibold mb-6">
                     <div class="flex justify-center space-x-2">
@@ -375,7 +376,6 @@
                             class="text-center bg-white text-black w-1/2 border-2 border-main rounded-2xl px-2 py-4"></select>
                     </div>
                 </div>
-                <!-- Calendar Grid -->
                 <div id="calendar" class="calendar-grid mb-4">
                     <div class="day-header">อา.</div>
                     <div class="day-header">จ.</div>
@@ -385,8 +385,6 @@
                     <div class="day-header">ศ.</div>
                     <div class="day-header">ส.</div>
                 </div>
-                <!-- End Calendar Grid -->
-
                 <div id="availability" class="max-w-sm mx-auto space-y-2"></div>
 
                 <div class="hidden">
@@ -416,19 +414,10 @@
         let liffProfile = null;
         let selectedServiceType = '';
 
-        // Define static closed dates directly in the frontend
-        // This is a client-side hardcoded list. If you want this to come from backend,
-        // you'd need a separate Apps Script endpoint for it (or fix getDailyStatusSummary).
         const STATIC_CLOSED_DATES = {
-            'normal': [ // For WEB_APP_URL_1 (normal clinic)
-                // '2024-07-28', // Example: July 28, 2024
-                // Add more dates here in 'YYYY-MM-DD' format
-            ],
-            'weekend': [ // For WEB_APP_URL_2 (weekend clinic)
-                // '2024-08-15', // Example: Aug 15, 2024
-            ]
+            'normal': [],
+            'weekend': []
         };
-
 
         document.addEventListener('DOMContentLoaded', async () => {
             showLoading(true);
@@ -588,8 +577,6 @@
         monthSelect.addEventListener('change', () => updateCalendar(parseInt(yearSelect.value), parseInt(monthSelect.value)));
         yearSelect.addEventListener('change', () => updateCalendar(parseInt(yearSelect.value), parseInt(monthSelect.value)));
 
-        const daysOfWeekNames = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
-
         function populateYearSelect(currentYear) {
             yearSelect.innerHTML = '';
             for (let i = currentYear; i <= currentYear + 3; i++) {
@@ -599,52 +586,21 @@
                 yearSelect.appendChild(option);
             }
         }
-
-        // --- NEW: Function to check availability for a given date string ---
-        // This is essentially moving the logic from Apps Script's getDailyStatusSummary
-        // to the frontend, but calling the existing checkAvailability endpoint.
-        async function getDailyStatusFromTimeSlots(dateStr) {
-            try {
-                const response = await fetch(`${WEB_APP_URL}?action=checkAvailability&date=${dateStr}`);
-                if (!response.ok) {
-                    // console.warn(`Failed to fetch time slots for ${dateStr}. Assuming Closed.`);
-                    return 'Closed'; // If cannot fetch, assume it's closed
-                }
-                const timeSlots = await response.json(); // This is the actual time slot availability
-
-                let totalSlots = 0;
-                let availableSlots = 0;
-                for (const time in timeSlots) {
-                    totalSlots++;
-                    if (timeSlots[time].status === 'Available') {
-                        availableSlots++;
-                    }
-                }
-
-                if (totalSlots === 0) {
-                    return 'Closed'; // No time slots defined for this day
-                } else if (availableSlots === 0) {
-                    return 'Full'; // All defined time slots are booked
-                } else {
-                    return 'Available'; // Has available slots
-                }
-
-            } catch (error) {
-                console.error(`Error checking time slots for ${dateStr}:`, error);
-                return 'Closed'; // On any error, treat as closed
-            }
-        }
-
-
+        
         async function updateCalendar(year, month) {
             showLoading(true);
             try {
-                const existingDays = calendarDiv.querySelectorAll('.calendar-day');
-                existingDays.forEach(el => el.remove());
+                calendarDiv.querySelectorAll('.calendar-day').forEach(el => el.remove());
+                availabilityDiv.innerHTML = '<div class="text-center text-gray-500 py-4">กรุณาเลือกวันที่ว่าง</div>';
+                
+                const response = await fetch(`${WEB_APP_URL}?action=getMonthlySummary&year=${year}&month=${month + 1}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch monthly summary.');
+                }
+                const dailyStatusMap = await response.json(); 
 
                 const today = new Date();
                 const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
                 const firstDayOfMonth = new Date(year, month, 1);
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
                 const firstDayOfWeek = firstDayOfMonth.getDay();
@@ -660,78 +616,44 @@
                     calendarDiv.appendChild(dayElement);
                 }
 
-                // Collect all promises for fetching daily statuses in parallel
-                const dailyStatusPromises = [];
-                const daysToProcess = [];
                 for (let day = 1; day <= daysInMonth; day++) {
                     const date = new Date(year, month, day);
                     const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-
-                    daysToProcess.push({ date, dateStr, day });
-                    dailyStatusPromises.push(getDailyStatusFromTimeSlots(dateStr));
-                }
-
-                // Wait for all daily statuses to be fetched
-                const allDailyStatuses = await Promise.all(dailyStatusPromises);
-                const dailyStatusMap = {};
-                daysToProcess.forEach((item, index) => {
-                    dailyStatusMap[item.dateStr] = allDailyStatuses[index];
-                });
-
-
-                for (let i = 0; i < daysToProcess.length; i++) {
-                    const { date, dateStr, day } = daysToProcess[i];
                     const dayElement = document.createElement('div');
                     dayElement.classList.add('calendar-day');
 
                     if (date.toDateString() === today.toDateString()) {
                         dayElement.classList.add('today');
                     }
-
-                    // Get status from the client-side derived map
-                    let status = dailyStatusMap[dateStr];
+                    
+                    let status = dailyStatusMap[dateStr] || 'Closed'; 
                     let statusText = '';
                     let clickable = true;
-
-                    // Client-side override for static closed dates (holidays, etc.)
-                    // Check against STATIC_CLOSED_DATES array
-                    const currentServiceClosedDates = STATIC_CLOSED_DATES[selectedServiceType] || [];
-                    if (currentServiceClosedDates.includes(dateStr)) {
-                        status = 'Closed';
-                    }
-
-                    // แทนที่โค้ดส่วน switch(status) … ด้วยโลジックแบบนี้
-                    // ที่บรรทัดก่อน switch ให้ remove ขอเดิม แล้วเพิ่ม:
-
-                    // 1. ถ้าวันในอดีต
+                    
                     if (date < startOfToday) {
                         dayElement.classList.add('day-expired');
-                        statusText = '';             // ไม่แสดงข้อความ
+                        statusText = '';
                         clickable = false;
-                    }
-                    // 2. ถ้าอยู่ใน STATIC_CLOSED_DATES (holidays)
-                    else if (currentServiceClosedDates.includes(dateStr)) {
+                    } else if (STATIC_CLOSED_DATES[selectedServiceType]?.includes(dateStr)) {
                         dayElement.classList.add('day-closed');
                         statusText = 'หยุด';
                         clickable = false;
-                    }
-                    // 3. ถ้า full booking
-                    else if (dailyStatusMap[dateStr] === 'Full') {
+                    } else if (status === 'Full') {
                         dayElement.classList.add('day-full');
                         statusText = 'เต็ม';
                         clickable = false;
-                    }
-                    // 4. available
-                    else {
+                    } else if (status === 'Available') {
                         dayElement.classList.add('day-available');
                         statusText = 'ว่าง';
+                    } else { // 'Closed' or any other case
+                         dayElement.classList.add('day-closed');
+                         statusText = 'ปิด';
+                         clickable = false;
                     }
 
-                    // สุดท้าย ใส่ HTML ของวัน
                     dayElement.innerHTML = `
-    <span class="day-number">${day}</span>
-    <span class="day-status">${statusText}</span>
-`;
+                        <span class="day-number">${day}</span>
+                        <span class="day-status">${statusText}</span>`;
 
                     if (clickable) {
                         dayElement.addEventListener('click', () => {
@@ -739,12 +661,12 @@
                             dayElement.classList.add('selected');
                             selectDate(year, month, day);
                         });
-                        if (status === 'Available' && !initialDateSelected) {
+                        if (!initialDateSelected) {
                             if (date.toDateString() === today.toDateString()) {
                                 dayElement.classList.add('selected');
                                 selectDate(year, month, day);
                                 initialDateSelected = true;
-                            } else if (!firstAvailableDateElement && date >= startOfToday) { // Only consider future available dates
+                            } else if (!firstAvailableDateElement) {
                                 firstAvailableDateElement = { year, month, day, element: dayElement };
                             }
                         }
@@ -757,13 +679,10 @@
                 if (!initialDateSelected && firstAvailableDateElement) {
                     firstAvailableDateElement.element.classList.add('selected');
                     selectDate(firstAvailableDateElement.year, firstAvailableDateElement.month, firstAvailableDateElement.day);
-                    initialDateSelected = true;
                 } else if (!initialDateSelected) {
                     availabilityDiv.innerHTML = '<div class="text-center text-red-500 py-4">ไม่มีช่วงเวลาที่ว่างสำหรับเดือนนี้</div>';
                     selectedDate = '';
-                    availabilityDiv.innerHTML = '';
                 }
-
 
                 const lastDayOfMonth = new Date(year, month, daysInMonth);
                 const lastDayOfWeek = lastDayOfMonth.getDay();
@@ -780,7 +699,7 @@
                 showLoading(false);
             }
         }
-
+        
         async function selectDate(year, month, day) {
             selectedDate = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             showLoading(true);
@@ -798,7 +717,6 @@
                 showLoading(false);
             }
         }
-
 
         function updateAvailability(availability) {
             availabilityDiv.innerHTML = '';
@@ -826,14 +744,16 @@
                 bookButton.disabled = info.status !== 'Available';
                 bookButton.addEventListener('click', () => {
                     timeInput.value = time.padStart(5, '0');
+                    const [year, month, day] = selectedDate.split('-');
+                    const displayDate = `${day}/${month}/${parseInt(year) + 543}`;
                     showPopup('ยืนยันการนัดหมาย', `
-                        <p>บริการ: ${form.service.value}</p>
-                        <p>สาขา: ${form.locationservice.value}</p>
-                        <p>ชื่อ: ${form.name.value}</p>  
-                        <p>เบอร์ติดต่อ: ${form.phonenumber.value}</p>              
-                        <p>หมายเหตุ: ${form.note.value || '-'}</p>
-                        <p>วันที่: ${selectedDate}</p>
-                        <p>เวลา: ${timeInput.value}</p>
+                        <p><strong>บริการ:</strong> ${form.service.value}</p>
+                        <p><strong>สาขา:</strong> ${form.locationservice.value}</p>
+                        <p><strong>ชื่อ:</strong> ${form.name.value}</p>  
+                        <p><strong>เบอร์ติดต่อ:</strong> ${form.phonenumber.value}</p>       
+                        <p><strong>หมายเหตุ:</strong> ${form.note.value || '-'}</p>
+                        <p><strong>วันที่:</strong> ${displayDate}</p>
+                        <p><strong>เวลา:</strong> ${timeInput.value} น.</p>
                     `, 'confirm');
                 });
 
@@ -868,15 +788,41 @@
                     throw new Error(`Server error: ${response.status} - ${errorText}`);
                 }
 
-                const result = await response.text();
-                console.log("Booking submission result:", result);
+                await response.text();
 
-                showPopup('สำเร็จ!', 'การนัดหมายเสร็จสมบูรณ์', 'success');
+                const service = form.service.value;
+                const location = form.locationservice.value;
+                const name = form.name.value;
+                const phone = form.phonenumber.value;
+                const note = form.note.value || '-';
+                const time = timeInput.value;
+                const [year, month, day] = selectedDate.split('-');
+                const displayDate = `${day}/${month}/${parseInt(year) + 543}`;
 
-                if (isLiffInitialized && typeof liff.isLoggedIn === 'function' && liff.isLoggedIn()) {
-                    if (typeof liff.closeWindow === 'function') {
-                        liff.closeWindow();
+                const confirmationMessageText = `✅ ยืนยันการจองคิวสำเร็จ\n\n` +
+                    `บริการ: ${service}\n` +
+                    `สาขา: ${location}\n` +
+                    `--------------------\n` +
+                    `ชื่อ-สกุล: ${name}\n` +
+                    `เบอร์ติดต่อ: ${phone}\n` +
+                    `วันที่: ${displayDate}\n` +
+                    `เวลา: ${time} น.\n` +
+                    `หมายเหตุ: ${note}\n\n` +
+                    `กรุณามาตรงตามเวลานัดหมาย ขอบคุณค่ะ 🙏`;
+
+                if (isLiffInitialized && liff.isLoggedIn()) {
+                    try {
+                        await liff.sendMessages([{
+                            type: 'text',
+                            text: confirmationMessageText
+                        }]);
+                        showPopup('สำเร็จ!', 'การนัดหมายเสร็จสมบูรณ์ และได้ส่งข้อมูลยืนยันเข้าสู่ห้องแชทแล้ว', 'success');
+                    } catch (err) {
+                        console.error('Error sending LIFF message:', err);
+                        showPopup('สำเร็จ!', 'การนัดหมายเสร็จสมบูรณ์ แต่ไม่สามารถส่งข้อความยืนยันในแชทได้', 'success');
                     }
+                } else {
+                    showPopup('สำเร็จ!', 'การนัดหมายเสร็จสมบูรณ์', 'success');
                 }
 
             } catch (error) {
@@ -885,58 +831,44 @@
             } finally {
                 showLoading(false);
                 isSubmitting = false;
+                await updateCalendar(parseInt(yearSelect.value), parseInt(monthSelect.value));
             }
         }
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            if (!selectedDate || !timeInput.value) {
-                showPopup('เกิดข้อผิดพลาด', 'กรุณาเลือกวันที่และเวลา', 'error');
-                return;
-            }
-            // แยก selectedDate "yyyy-mm-dd" ออกมา แล้วสลับเป็น "dd-mm-yyyy"
-            const [year, month, day] = selectedDate.split('-');
-            const displayDate = `${day}-${month}-${year}`;
-
-            showPopup(
-                '<p class="text-blue-900">📆 ยืนยันการนัดหมาย</p>',
-                `
-            <p>บริการ: ${form.service.value}</p>
-            <p>สาขา: ${form.locationservice.value}</p>
-            <p>ชื่อ: ${form.name.value}</p>  
-            <p>เบอร์ติดต่อ: ${form.phonenumber.value}</p>              
-            <p>หมายเหตุ: ${form.note.value || '-'}</p>
-            <p>วันที่: ${displayDate}</p>
-            <p>เวลา: ${timeInput.value}</p>
-        `,
-                'confirm'
-            );
         });
-
 
         function showPopup(title, content, type) {
             const popup = document.getElementById('popup');
             const popupContent = document.getElementById('popupContent');
-            popupContent.innerHTML = `<h2 class="text-xl mb-4 font-bold text-center">${title}</h2><div class="text-gray-700">${content}</div>`;
+            popupContent.innerHTML = `<h2 class="text-xl mb-4 font-bold text-center">${title}</h2><div class="text-gray-700 space-y-2">${content}</div>`;
+
             if (type === 'confirm') {
                 popupContent.innerHTML += `
                     <div class="flex justify-between my-6">
                         <button id="cancelButton" class="w-1/2 p-3 mr-2 bg-gray-300 text-gray-700 rounded-2xl font-semibold">ยกเลิก</button>
                         <button id="confirmButton" class="w-1/2 p-3 bg-main text-white rounded-2xl ml-2 font-semibold">ยืนยันนัดหมาย</button>
-                    </div>
-                `;
+                    </div>`;
                 document.getElementById('confirmButton').addEventListener('click', () => {
                     document.getElementById('confirmButton').innerText = 'กำลังบันทึก...';
                     document.getElementById('confirmButton').disabled = true;
                     submitBooking();
                 });
                 document.getElementById('cancelButton').addEventListener('click', hidePopup);
-            } else {
-                popupContent.innerHTML += `<div class="mt-6 text-center"><button onclick="hidePopup()" class="px-6 py-3 bg-gray-300 text-gray-700 rounded-2xl font-semibold">ปิด</button></div>`;
+            } else { // Handles 'success' and 'error'
+                popupContent.innerHTML += `<div class="mt-6 text-center"><button id="finalCloseButton" class="px-6 py-3 bg-main text-white rounded-2xl font-semibold">ปิด</button></div>`;
+                document.getElementById('finalCloseButton').addEventListener('click', () => {
+                    hidePopup();
+                    if (type === 'success' && isLiffInitialized && typeof liff.isLoggedIn === 'function' && liff.isLoggedIn()) {
+                        if (typeof liff.closeWindow === 'function') {
+                            liff.closeWindow();
+                        }
+                    }
+                });
             }
             popup.style.display = 'flex';
         }
-
     </script>
 </body>
 
