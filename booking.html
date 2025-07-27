@@ -799,7 +799,7 @@
                                     type: 'box',
                                     layout: 'horizontal',
                                     contents: [
-                                        { type: 'text', text: 'สาขา', size: 'sm', color: '#000000', weight: 'bold' },
+                                        { type: 'text', text: 'คลินิกทันตกรรมนอกเวลา', size: 'sm', color: '#000000', weight: 'bold' },
                                         { type: 'text', text: data.locationservice, size: 'sm', color: '#111111', align: 'end', wrap: true }
                                     ]
                                 },
@@ -834,14 +834,22 @@
                 footer: {
                     type: 'box',
                     layout: 'vertical',
-                    contents: [{
-                        type: 'text',
-                        text: 'บันทึกนัดหมายของคุณแล้ว',
-                        size: 'xs',
-                        color: '#ffffff',
-                        align: 'center'
-                    }],
-                    // --- CHANGED: Background color updated ---
+                    contents: [
+                        {
+                            type: 'text',
+                            text: 'บันทึกนัดหมายของคุณแล้ว',
+                            size: 'xs',
+                            color: '#ffffff',
+                            align: 'center'
+                        },
+                        {
+                            type: 'text',
+                            text: 'เจ้าหน้าที่จะยืนยันนัดหมายก่อนทุกครั้ง',
+                            size: 'xs',
+                            color: '#ffffff',
+                            align: 'center'
+                        }
+                    ],
                     backgroundColor: '#15803d'
                 }
             };
